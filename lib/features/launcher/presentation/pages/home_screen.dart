@@ -12,6 +12,7 @@ import '../../../settings/presentation/pages/settings_screen.dart';
 import '../providers/launcher_state.dart';
 import 'app_drawer.dart';
 import 'search_overlay.dart';
+import '../../../../features/focus/domain/services/app_launcher.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -170,7 +171,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                     borderRadius: NudgeRadius.smallAll,
                                     onTap: () async {
                                       final messenger = ScaffoldMessenger.of(context);
-                                      final success = await notifier.launchApp(app.packageName);
+                                      final success = await AppLauncher.launch(context, ref, app.packageName);
                                       if (!success) {
                                         messenger.showSnackBar(
                                           SnackBar(

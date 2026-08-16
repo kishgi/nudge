@@ -6,6 +6,7 @@ import 'core/theme/app_theme.dart';
 import 'core/theme/nudge_theme.dart';
 import 'core/theme/theme_provider.dart';
 import 'features/launcher/presentation/pages/home_screen.dart';
+import 'features/usage/presentation/providers/usage_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -47,6 +48,15 @@ class _NudgeAppState extends ConsumerState<NudgeApp> with WidgetsBindingObserver
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.resumed) {
+      // Refresh usage stats on resume — no background polling, zero battery impact.
+      ref.read(usageProvider.notifier).refresh();
+    }
   }
 
   @override

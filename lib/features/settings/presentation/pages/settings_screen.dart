@@ -12,6 +12,8 @@ import '../../../../core/theme/nudge_typography.dart';
 import '../../../../core/theme/nudge_colors.dart';
 import '../../../../features/customization/domain/models/theme_config.dart';
 import '../../../../core/database/database_service.dart';
+import '../../../../features/focus/presentation/pages/focus_settings_screen.dart';
+import '../../../../features/usage/presentation/pages/dashboard_screen.dart';
 
 // Helper extensions for styling.
 extension SettingsThemeExtension on BuildContext {
@@ -117,6 +119,28 @@ class SettingsScreen extends ConsumerWidget {
               onTap: () => Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const MotionSettingsPage()),
+              ),
+            ),
+            const SizedBox(height: 16),
+            _buildSectionHeader(context, 'Digital Wellbeing'),
+            _buildTile(
+              context,
+              icon: NudgeIconToken.focus,
+              title: 'Focus & Block Rules',
+              subtitle: 'App blocking, delays, scheduled rules',
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const FocusSettingsPage()),
+              ),
+            ),
+            _buildTile(
+              context,
+              icon: NudgeIconToken.success,
+              title: 'Wellbeing Dashboard',
+              subtitle: 'Screen time, launches, focus score',
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const DashboardScreen()),
               ),
             ),
             const SizedBox(height: 40),

@@ -6,6 +6,7 @@ import '../../../../core/theme/nudge_radius.dart';
 import '../../../../core/theme/nudge_spacing.dart';
 import '../../../../core/theme/nudge_theme.dart';
 import '../../../../core/theme/nudge_icons.dart';
+import '../../../focus/domain/services/app_launcher.dart';
 import '../../../apps/domain/models/installed_app.dart';
 import '../../../search/domain/services/search_service.dart';
 import '../../../settings/presentation/pages/settings_screen.dart';
@@ -119,7 +120,7 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
                             onTap: () async {
                               final navigator = Navigator.of(context);
                               final messenger = ScaffoldMessenger.of(context);
-                              final success = await notifier.launchApp(app.packageName);
+                              final success = await AppLauncher.launch(context, ref, app.packageName);
                               if (success) {
                                 navigator.pop();
                               } else {

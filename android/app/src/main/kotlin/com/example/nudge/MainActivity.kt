@@ -42,6 +42,43 @@ class MainActivity : FlutterActivity() {
                         result.error("INVALID_ARGUMENT", "Package name is null", null)
                     }
                 }
+                "hasUsageStatsPermission" -> {
+                    result.success(hasUsageStatsPermission())
+                }
+                "requestUsageStatsPermission" -> {
+                    requestUsageStatsPermission()
+                    result.success(null)
+                }
+                "getAppUsageStats" -> {
+                    val startTime = call.argument<Long>("startTime")
+                    val endTime = call.argument<Long>("endTime")
+                    if (startTime != null && endTime != null) {
+                        result.success(getAppUsageStats(startTime, endTime))
+                    } else {
+                        result.error("INVALID_ARGUMENT", "startTime or endTime is null", null)
+                    }
+                }
+                "hasContactsPermission" -> {
+                    result.success(hasContactsPermission())
+                }
+                "requestContactsPermission" -> {
+                    requestContactsPermission()
+                    result.success(null)
+                }
+                "getContacts" -> {
+                    result.success(getContactsList())
+                }
+                "dialNumber" -> {
+                    val number = call.argument<String>("number")
+                    if (number != null) {
+                        val intent = Intent(Intent.ACTION_DIAL, android.net.Uri.parse("tel:$number"))
+                        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                        startActivity(intent)
+                        result.success(true)
+                    } else {
+                        result.error("INVALID_ARGUMENT", "Number is null", null)
+                    }
+                }
                 else -> {
                     result.notImplemented()
                 }
@@ -138,5 +175,105 @@ class MainActivity : FlutterActivity() {
             unregisterReceiver(it)
             packageReceiver = null
         }
+    }
+
+    private fun hasUsageStatsPermission(): Boolean {
+        val appOps = getSystemService(Context.APP_OPS_SERVICE) as android.app.AppOpsManager
+        val mode = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+            appOps.unsafeCheckOpNoThrow(android.app.AppOpsManager.OPSTR_GET_USAGE_STATS, android.os.Process.myUid(), packageName)
+        } else {
+            appOps.checkOpNoThrow(android.app.AppOpsManager.OPSTR_GET_USAGE_STATS, android.os.Process.myUid(), packageName)
+        }
+        return mode == android.app.AppOpsManager.MODE_ALLOWED
+    }
+
+    private fun requestUsageStatsPermission() {
+        val intent = Intent(android.provider.Settings.ACTION_USAGE_ACCESS_SETTINGS)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        startActivity(intent)
+    }
+
+    private fun getAppUsageStats(startTime: Long, endTime: Long): List<Map<String, Any?>> {
+        val usageStatsManager = getSystemService(Context.USAGE_STATS_SERVICE) as android.app.usage.UsageStatsManager
+        val stats = usageStatsManager.queryUsageStats(android.app.usage.UsageStatsManager.INTERVAL_DAILY, startTime, endTime)
+        val result = ArrayList<Map<String, Any?>>()
+
+        if (stats != null) {
+            val mergedStats = HashMap<String, android.app.usage.UsageStats>()
+            for (stat in stats) {
+                val pkg = stat.packageName
+                val existing = mergedStats[pkg]
+                if (existing == null || stat.lastTimeUsed > existing.lastTimeUsed) {
+                    mergedStats[pkg] = stat
+                }
+            }
+
+            for ((pkg, stat) in mergedStats) {
+                val timeInForeground = stat.totalTimeInForeground
+                if (timeInForeground > 0) {
+                    val map = HashMap<String, Any?>()
+                    map["packageName"] = pkg
+                    map["totalTimeInForeground"] = timeInForeground
+                    map["lastTimeUsed"] = stat.lastTimeUsed
+
+                    val launchCount = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+                        stat.appLaunchCount
+                    } else {
+                        0
+                    }
+                    map["launchCount"] = launchCount
+                    result.add(map)
+                }
+            }
+        }
+        return result
+    }
+
+    private fun hasContactsPermission(): Boolean {
+        return if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            checkSelfPermission(android.Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED
+        } else {
+            true
+        }
+    }
+
+    private fun requestContactsPermission() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            requestPermissions(arrayOf(android.Manifest.permission.READ_CONTACTS), 101)
+        }
+    }
+
+    private fun getContactsList(): List<Map<String, String>> {
+        val contactsList = ArrayList<Map<String, String>>()
+        if (!hasContactsPermission()) return contactsList
+
+        val resolver = contentResolver
+        val cursor = resolver.query(
+            android.provider.ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+            arrayOf(
+                android.provider.ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
+                android.provider.ContactsContract.CommonDataKinds.Phone.NUMBER
+            ),
+            null,
+            null,
+            null
+        )
+
+        cursor?.use {
+            val nameIndex = it.getColumnIndex(android.provider.ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME)
+            val numberIndex = it.getColumnIndex(android.provider.ContactsContract.CommonDataKinds.Phone.NUMBER)
+
+            while (it.moveToNext()) {
+                val name = if (nameIndex >= 0) it.getString(nameIndex) else null
+                val number = if (numberIndex >= 0) it.getString(numberIndex) else null
+                if (name != null) {
+                    val map = HashMap<String, String>()
+                    map["name"] = name
+                    map["number"] = number ?: ""
+                    contactsList.add(map)
+                }
+            }
+        }
+        return contactsList
     }
 }

@@ -4,8 +4,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/nudge_radius.dart';
 import '../../../../core/theme/nudge_spacing.dart';
 import '../../../../core/theme/nudge_theme.dart';
-import '../../../apps/domain/models/installed_app.dart';
+import '../../../../core/theme/nudge_icons.dart';
+import '../../../search/domain/models/search_models.dart';
 import '../../../search/domain/services/search_service.dart';
+import '../../../usage/presentation/providers/usage_provider.dart';
+import '../../../focus/domain/services/app_launcher.dart';
+import '../../../focus/presentation/providers/focus_provider.dart';
+import '../../../settings/presentation/pages/settings_screen.dart';
+import '../../../focus/presentation/pages/focus_settings_screen.dart';
+import '../../../usage/presentation/pages/dashboard_screen.dart';
 import '../providers/launcher_state.dart';
 
 class SearchOverlay extends ConsumerStatefulWidget {
@@ -28,7 +35,6 @@ class _SearchOverlayState extends ConsumerState<SearchOverlay> {
         _query = _searchController.text;
       });
     });
-    // Request focus immediately so keyboard opens
     _focusNode.requestFocus();
   }
 
@@ -39,24 +45,126 @@ class _SearchOverlayState extends ConsumerState<SearchOverlay> {
     super.dispose();
   }
 
+  void _handleItemTap(BuildContext context, SearchItem item) async {
+    final navigator = Navigator.of(context);
+
+    switch (item.type) {
+      case SearchItemType.app:
+        if (item.app != null) {
+          final success = await AppLauncher.launch(context, ref, item.app!.packageName);
+          if (success) {
+            navigator.pop();
+          }
+        }
+        break;
+
+      case SearchItemType.setting:
+        final route = item.settingRoute;
+        if (route != null) {
+          navigator.pop(); // Close search
+          _navigateSetting(context, route);
+        }
+        break;
+
+      case SearchItemType.action:
+        final action = item.actionName;
+        if (action != null) {
+          navigator.pop(); // Close search
+          _triggerAction(context, ref, action);
+        }
+        break;
+
+      case SearchItemType.contact:
+        final number = item.contactNumber;
+        if (number != null) {
+          navigator.pop(); // Close search
+          await ref.read(usageProvider.notifier).dialNumber(number);
+        }
+        break;
+    }
+  }
+
+  void _navigateSetting(BuildContext context, String route) {
+    Widget? page;
+    switch (route) {
+      case 'typography':
+        page = const TypographySettingsPage();
+        break;
+      case 'icons':
+        page = const IconSettingsPage();
+        break;
+      case 'colors':
+        page = const ColorSettingsPage();
+        break;
+      case 'layout':
+        page = const LayoutSettingsPage();
+        break;
+      case 'clock':
+        page = const ClockSettingsPage();
+        break;
+      case 'focus':
+        page = const FocusSettingsPage();
+        break;
+      case 'themes':
+        page = const ThemesPage();
+        break;
+      case 'wellbeing':
+        page = const DashboardScreen();
+        break;
+    }
+    if (page != null) {
+      Navigator.push(context, MaterialPageRoute(builder: (_) => page!));
+    }
+  }
+
+  void _triggerAction(BuildContext context, WidgetRef ref, String action) {
+    switch (action) {
+      case 'focus_work':
+        ref.read(focusProvider.notifier).startFocusSession('Work', 25);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Work Focus Session started (25 mins)')),
+        );
+        break;
+      case 'focus_study':
+        ref.read(focusProvider.notifier).startFocusSession('Study', 25);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Study Focus Session started (25 mins)')),
+        );
+        break;
+      case 'focus_sleep':
+        ref.read(focusProvider.notifier).startFocusSession('Sleep', 480);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Sleep Focus Session started (8 hours)')),
+        );
+        break;
+      case 'open_dashboard':
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const DashboardScreen()));
+        break;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = context.nudgeTheme;
-    final state = ref.watch(launcherProvider);
-    final notifier = ref.read(launcherProvider.notifier);
+    final launcherState = ref.watch(launcherProvider);
+    final usageState = ref.watch(usageProvider);
 
-    // Get all apps (we allow searching hidden apps if needed, but standard is to search all non-hidden apps, or all apps. Let's allow searching all non-hidden apps).
-    final visibleApps = state.allApps.where((app) => !app.isHidden).toList();
-    final results = _query.isEmpty
-        ? const <InstalledApp>[]
-        : SearchService.search(visibleApps, _query);
+    final visibleApps = launcherState.allApps.where((app) => !app.isHidden).toList();
+
+    // Query combined search results
+    final List<SearchItem> results = SearchService.searchAll(
+      apps: visibleApps,
+      contacts: usageState.contacts,
+      appLaunchCounts: usageState.appLaunchCounts,
+      query: _query,
+    );
 
     return Scaffold(
       backgroundColor: t.background,
       body: SafeArea(
         child: Column(
           children: [
-            // Search field
+            // Search Input Field
             Padding(
               padding: const EdgeInsets.all(NudgeSpacing.lg),
               child: TextField(
@@ -66,21 +174,16 @@ class _SearchOverlayState extends ConsumerState<SearchOverlay> {
                 textInputAction: TextInputAction.go,
                 style: t.type.body.copyWith(color: t.primaryText),
                 decoration: InputDecoration(
-                  hintText: 'Search apps...',
-                  prefixIcon: Icon(Icons.search, color: t.secondaryText),
+                  hintText: 'Search apps, settings, actions...',
+                  prefixIcon: Icon(t.icons.resolve(NudgeIconToken.search), color: t.secondaryText),
                   suffixIcon: IconButton(
-                    icon: Icon(Icons.close, color: t.secondaryText),
+                    icon: Icon(t.icons.resolve(NudgeIconToken.close), color: t.secondaryText),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ),
-                onSubmitted: (value) async {
+                onSubmitted: (value) {
                   if (results.isNotEmpty) {
-                    final app = results.first;
-                    final navigator = Navigator.of(context);
-                    final success = await notifier.launchApp(app.packageName);
-                    if (success) {
-                      navigator.pop();
-                    }
+                    _handleItemTap(context, results.first);
                   }
                 },
               ),
@@ -100,78 +203,96 @@ class _SearchOverlayState extends ConsumerState<SearchOverlay> {
                       ),
                       itemCount: results.length,
                       itemBuilder: (context, index) {
-                        final app = results[index];
-                        final iconBytes = state.appIcons[app.packageName];
+                        final item = results[index];
                         final isFirst = index == 0;
+
+                        // Resolve trailing "Go" indicator or item type tag
+                        Widget? leadingIcon;
+                        switch (item.type) {
+                          case SearchItemType.app:
+                            final iconBytes = launcherState.appIcons[item.app?.packageName];
+                            leadingIcon = ClipRRect(
+                              borderRadius: NudgeRadius.smallAll,
+                              child: iconBytes != null
+                                  ? Image.memory(iconBytes, width: 36, height: 36, fit: BoxFit.cover)
+                                  : Container(
+                                      width: 36,
+                                      height: 36,
+                                      color: t.divider,
+                                      child: Icon(Icons.android, color: t.secondaryText, size: 20),
+                                    ),
+                            );
+                            break;
+                          case SearchItemType.setting:
+                            leadingIcon = Container(
+                              width: 36,
+                              height: 36,
+                              decoration: BoxDecoration(
+                                color: t.accent.withValues(alpha: 0.05),
+                                borderRadius: NudgeRadius.smallAll,
+                              ),
+                              child: Icon(t.icons.resolve(NudgeIconToken.settings), color: t.accent, size: 20),
+                            );
+                            break;
+                          case SearchItemType.action:
+                            leadingIcon = Container(
+                              width: 36,
+                              height: 36,
+                              decoration: BoxDecoration(
+                                color: t.semanticColors.successSubtle,
+                                borderRadius: NudgeRadius.smallAll,
+                              ),
+                              child: Icon(t.icons.resolve(NudgeIconToken.developer), color: t.semanticColors.success, size: 20),
+                            );
+                            break;
+                          case SearchItemType.contact:
+                            leadingIcon = Container(
+                              width: 36,
+                              height: 36,
+                              decoration: BoxDecoration(
+                                color: t.secondaryText.withValues(alpha: 0.05),
+                                borderRadius: NudgeRadius.smallAll,
+                              ),
+                              child: Icon(t.icons.resolve(NudgeIconToken.device), color: t.secondaryText, size: 20),
+                            );
+                            break;
+                        }
 
                         return Material(
                           color: Colors.transparent,
                           child: InkWell(
                             borderRadius: NudgeRadius.smallAll,
-                            onTap: () async {
-                              final navigator = Navigator.of(context);
-                              final success = await notifier.launchApp(app.packageName);
-                              if (success) {
-                                navigator.pop();
-                              }
-                            },
+                            onTap: () => _handleItemTap(context, item),
                             child: Container(
                               padding: const EdgeInsets.symmetric(
                                 vertical: NudgeSpacing.md,
                                 horizontal: NudgeSpacing.sm,
                               ),
                               decoration: BoxDecoration(
-                                color: isFirst
-                                    ? t.accent.withValues(alpha: 0.08)
-                                    : Colors.transparent,
+                                color: isFirst ? t.accent.withValues(alpha: 0.05) : Colors.transparent,
                                 borderRadius: NudgeRadius.smallAll,
                                 border: isFirst
-                                    ? Border.all(color: t.accent.withValues(alpha: 0.3), width: 1)
+                                    ? Border.all(color: t.accent.withValues(alpha: 0.2), width: 1)
                                     : null,
                               ),
                               child: Row(
                                 children: [
-                                  // App Icon
-                                  ClipRRect(
-                                    borderRadius: NudgeRadius.smallAll,
-                                    child: iconBytes != null
-                                        ? Image.memory(
-                                            iconBytes,
-                                            width: 36,
-                                            height: 36,
-                                            fit: BoxFit.cover,
-                                          )
-                                        : Container(
-                                            width: 36,
-                                            height: 36,
-                                            color: t.divider,
-                                            child: Icon(
-                                              Icons.android,
-                                              color: t.secondaryText,
-                                              size: 20,
-                                            ),
-                                          ),
-                                  ),
+                                  leadingIcon,
                                   const SizedBox(width: NudgeSpacing.md),
-                                  // App Name
                                   Expanded(
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          app.appName,
+                                          item.title,
                                           style: t.type.body.copyWith(
                                             color: t.primaryText,
-                                            fontWeight: isFirst
-                                                ? FontWeight.w600
-                                                : FontWeight.w400,
+                                            fontWeight: isFirst ? FontWeight.w600 : FontWeight.w400,
                                           ),
                                         ),
                                         Text(
-                                          app.packageName,
-                                          style: t.type.caption.copyWith(
-                                            color: t.mutedText,
-                                          ),
+                                          item.subtitle,
+                                          style: t.type.caption.copyWith(color: t.mutedText),
                                           overflow: TextOverflow.ellipsis,
                                         ),
                                       ],

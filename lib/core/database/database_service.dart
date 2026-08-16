@@ -1,13 +1,17 @@
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../features/customization/domain/models/app_settings.dart';
 import '../../features/apps/domain/models/installed_app.dart';
 import '../../features/customization/domain/models/theme_config.dart';
+import '../../features/focus/domain/models/focus_models.dart';
+import '../../features/usage/domain/models/usage_models.dart';
 
 export '../../features/apps/domain/models/installed_app.dart';
 export '../../features/customization/domain/models/theme_config.dart';
+export '../../features/focus/domain/models/focus_models.dart';
+export '../../features/usage/domain/models/usage_models.dart';
 
 class DatabaseService {
   late final Isar isar;
@@ -19,6 +23,9 @@ class DatabaseService {
         AppSettingsSchema,
         InstalledAppSchema,
         ThemeConfigSchema,
+        FocusRuleSchema,
+        FocusSessionSchema,
+        UsageSummarySchema,
       ],
       directory: dir.path,
     );
