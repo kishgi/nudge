@@ -4,11 +4,13 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import android.os.Build
 import android.os.Bundle
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
@@ -79,6 +81,10 @@ class MainActivity : FlutterActivity() {
                         result.error("INVALID_ARGUMENT", "Number is null", null)
                     }
                 }
+                "lockScreen" -> {
+                    val locked = tryLockScreen()
+                    result.success(locked)
+                }
                 else -> {
                     result.notImplemented()
                 }
@@ -109,14 +115,57 @@ class MainActivity : FlutterActivity() {
             val packageName = info.activityInfo.packageName
             val iconDrawable = info.loadIcon(pm)
             val iconBytes = drawableToByteArray(iconDrawable)
+            val category = resolveAppCategory(pm, packageName)
 
             val appMap = HashMap<String, Any?>()
             appMap["appName"] = appName
             appMap["packageName"] = packageName
             appMap["icon"] = iconBytes
+            appMap["category"] = category
             appsList.add(appMap)
         }
         return appsList
+    }
+
+    /**
+     * Maps Android's ApplicationInfo.category (API 26+) to a human-readable
+     * string. Falls back to package-prefix heuristics on older devices.
+     */
+    private fun resolveAppCategory(pm: PackageManager, packageName: String): String {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            try {
+                val appInfo = pm.getApplicationInfo(packageName, 0)
+                val cat = ApplicationInfo.getCategoryTitle(this, appInfo.category)
+                if (cat != null && cat.isNotEmpty()) return cat.toString()
+            } catch (_: Exception) { }
+        }
+        // Package-prefix heuristics as fallback
+        return when {
+            packageName.contains("game") -> "Game"
+            packageName.contains("music") || packageName.contains("audio") || packageName.contains("spotify") -> "Audio"
+            packageName.contains("video") || packageName.contains("youtube") || packageName.contains("netflix") -> "Video"
+            packageName.contains("photo") || packageName.contains("gallery") || packageName.contains("camera") -> "Image"
+            packageName.contains("social") || packageName.contains("twitter") || packageName.contains("instagram") || packageName.contains("facebook") -> "Social"
+            packageName.contains("news") || packageName.contains("rss") || packageName.contains("reddit") -> "News"
+            packageName.contains("maps") || packageName.contains("navigation") || packageName.contains("waze") -> "Maps"
+            packageName.contains("office") || packageName.contains("docs") || packageName.contains("sheet") || packageName.contains("productivity") -> "Productivity"
+            else -> "Other"
+        }
+    }
+
+    /**
+     * Attempts to lock the screen via DevicePolicyManager.
+     * Returns true if successful, false if the launcher does not have
+     * BIND_DEVICE_ADMIN rights (graceful no-op).
+     */
+    private fun tryLockScreen(): Boolean {
+        return try {
+            val dpm = getSystemService(DEVICE_POLICY_SERVICE) as android.app.admin.DevicePolicyManager
+            dpm.lockNow()
+            true
+        } catch (_: Exception) {
+            false
+        }
     }
 
     private fun launchApplication(packageName: String): Boolean {

@@ -82,6 +82,9 @@ class ThemeConfig {
   /// Accent color as ARGB int. Used only when colorPreset == 'custom'.
   int? accentColorValue;
 
+  /// High contrast mode override for accessibility.
+  bool highContrast = false;
+
   // ─── Layout ────────────────────────────────────────────────────────────────
 
   /// Horizontal padding in logical pixels. Range: 12.0–48.0.

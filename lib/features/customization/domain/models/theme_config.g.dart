@@ -102,101 +102,106 @@ const ThemeConfigSchema = CollectionSchema(
       name: r'hapticFeedback',
       type: IsarType.bool,
     ),
-    r'horizontalPadding': PropertySchema(
+    r'highContrast': PropertySchema(
       id: 17,
+      name: r'highContrast',
+      type: IsarType.bool,
+    ),
+    r'horizontalPadding': PropertySchema(
+      id: 18,
       name: r'horizontalPadding',
       type: IsarType.double,
     ),
     r'iconColorValue': PropertySchema(
-      id: 18,
+      id: 19,
       name: r'iconColorValue',
       type: IsarType.long,
     ),
     r'iconOpacity': PropertySchema(
-      id: 19,
+      id: 20,
       name: r'iconOpacity',
       type: IsarType.double,
     ),
     r'iconPack': PropertySchema(
-      id: 20,
+      id: 21,
       name: r'iconPack',
       type: IsarType.string,
     ),
     r'iconSize': PropertySchema(
-      id: 21,
+      id: 22,
       name: r'iconSize',
       type: IsarType.double,
     ),
     r'iconStyle': PropertySchema(
-      id: 22,
+      id: 23,
       name: r'iconStyle',
       type: IsarType.string,
     ),
     r'iconThickness': PropertySchema(
-      id: 23,
+      id: 24,
       name: r'iconThickness',
       type: IsarType.double,
     ),
-    r'isCustom': PropertySchema(id: 24, name: r'isCustom', type: IsarType.bool),
+    r'isCustom': PropertySchema(id: 25, name: r'isCustom', type: IsarType.bool),
     r'letterSpacingDelta': PropertySchema(
-      id: 25,
+      id: 26,
       name: r'letterSpacingDelta',
       type: IsarType.double,
     ),
     r'lineHeightScale': PropertySchema(
-      id: 26,
+      id: 27,
       name: r'lineHeightScale',
       type: IsarType.double,
     ),
     r'motionMode': PropertySchema(
-      id: 27,
+      id: 28,
       name: r'motionMode',
       type: IsarType.string,
     ),
-    r'name': PropertySchema(id: 28, name: r'name', type: IsarType.string),
+    r'name': PropertySchema(id: 29, name: r'name', type: IsarType.string),
     r'primaryTextColorValue': PropertySchema(
-      id: 29,
+      id: 30,
       name: r'primaryTextColorValue',
       type: IsarType.long,
     ),
     r'reducedMotion': PropertySchema(
-      id: 30,
+      id: 31,
       name: r'reducedMotion',
       type: IsarType.bool,
     ),
     r'secondaryTextColorValue': PropertySchema(
-      id: 31,
+      id: 32,
       name: r'secondaryTextColorValue',
       type: IsarType.long,
     ),
-    r'showDate': PropertySchema(id: 32, name: r'showDate', type: IsarType.bool),
+    r'showDate': PropertySchema(id: 33, name: r'showDate', type: IsarType.bool),
     r'showIcons': PropertySchema(
-      id: 33,
+      id: 34,
       name: r'showIcons',
       type: IsarType.bool,
     ),
     r'showSeconds': PropertySchema(
-      id: 34,
+      id: 35,
       name: r'showSeconds',
       type: IsarType.bool,
     ),
     r'textAlignment': PropertySchema(
-      id: 35,
+      id: 36,
       name: r'textAlignment',
       type: IsarType.string,
     ),
     r'textCase': PropertySchema(
-      id: 36,
+      id: 37,
       name: r'textCase',
       type: IsarType.string,
     ),
     r'verticalSpacing': PropertySchema(
-      id: 37,
+      id: 38,
       name: r'verticalSpacing',
       type: IsarType.double,
     ),
     r'visibleAppCount': PropertySchema(
-      id: 38,
+      id: 39,
       name: r'visibleAppCount',
       type: IsarType.long,
     ),
@@ -269,28 +274,29 @@ void _themeConfigSerialize(
   writer.writeDouble(offsets[14], object.fontSizeScale);
   writer.writeLong(offsets[15], object.fontWeight);
   writer.writeBool(offsets[16], object.hapticFeedback);
-  writer.writeDouble(offsets[17], object.horizontalPadding);
-  writer.writeLong(offsets[18], object.iconColorValue);
-  writer.writeDouble(offsets[19], object.iconOpacity);
-  writer.writeString(offsets[20], object.iconPack);
-  writer.writeDouble(offsets[21], object.iconSize);
-  writer.writeString(offsets[22], object.iconStyle);
-  writer.writeDouble(offsets[23], object.iconThickness);
-  writer.writeBool(offsets[24], object.isCustom);
-  writer.writeDouble(offsets[25], object.letterSpacingDelta);
-  writer.writeDouble(offsets[26], object.lineHeightScale);
-  writer.writeString(offsets[27], object.motionMode);
-  writer.writeString(offsets[28], object.name);
-  writer.writeLong(offsets[29], object.primaryTextColorValue);
-  writer.writeBool(offsets[30], object.reducedMotion);
-  writer.writeLong(offsets[31], object.secondaryTextColorValue);
-  writer.writeBool(offsets[32], object.showDate);
-  writer.writeBool(offsets[33], object.showIcons);
-  writer.writeBool(offsets[34], object.showSeconds);
-  writer.writeString(offsets[35], object.textAlignment);
-  writer.writeString(offsets[36], object.textCase);
-  writer.writeDouble(offsets[37], object.verticalSpacing);
-  writer.writeLong(offsets[38], object.visibleAppCount);
+  writer.writeBool(offsets[17], object.highContrast);
+  writer.writeDouble(offsets[18], object.horizontalPadding);
+  writer.writeLong(offsets[19], object.iconColorValue);
+  writer.writeDouble(offsets[20], object.iconOpacity);
+  writer.writeString(offsets[21], object.iconPack);
+  writer.writeDouble(offsets[22], object.iconSize);
+  writer.writeString(offsets[23], object.iconStyle);
+  writer.writeDouble(offsets[24], object.iconThickness);
+  writer.writeBool(offsets[25], object.isCustom);
+  writer.writeDouble(offsets[26], object.letterSpacingDelta);
+  writer.writeDouble(offsets[27], object.lineHeightScale);
+  writer.writeString(offsets[28], object.motionMode);
+  writer.writeString(offsets[29], object.name);
+  writer.writeLong(offsets[30], object.primaryTextColorValue);
+  writer.writeBool(offsets[31], object.reducedMotion);
+  writer.writeLong(offsets[32], object.secondaryTextColorValue);
+  writer.writeBool(offsets[33], object.showDate);
+  writer.writeBool(offsets[34], object.showIcons);
+  writer.writeBool(offsets[35], object.showSeconds);
+  writer.writeString(offsets[36], object.textAlignment);
+  writer.writeString(offsets[37], object.textCase);
+  writer.writeDouble(offsets[38], object.verticalSpacing);
+  writer.writeLong(offsets[39], object.visibleAppCount);
 }
 
 ThemeConfig _themeConfigDeserialize(
@@ -317,29 +323,30 @@ ThemeConfig _themeConfigDeserialize(
   object.fontSizeScale = reader.readDouble(offsets[14]);
   object.fontWeight = reader.readLong(offsets[15]);
   object.hapticFeedback = reader.readBool(offsets[16]);
-  object.horizontalPadding = reader.readDouble(offsets[17]);
-  object.iconColorValue = reader.readLongOrNull(offsets[18]);
-  object.iconOpacity = reader.readDouble(offsets[19]);
-  object.iconPack = reader.readString(offsets[20]);
-  object.iconSize = reader.readDouble(offsets[21]);
-  object.iconStyle = reader.readString(offsets[22]);
-  object.iconThickness = reader.readDouble(offsets[23]);
+  object.highContrast = reader.readBool(offsets[17]);
+  object.horizontalPadding = reader.readDouble(offsets[18]);
+  object.iconColorValue = reader.readLongOrNull(offsets[19]);
+  object.iconOpacity = reader.readDouble(offsets[20]);
+  object.iconPack = reader.readString(offsets[21]);
+  object.iconSize = reader.readDouble(offsets[22]);
+  object.iconStyle = reader.readString(offsets[23]);
+  object.iconThickness = reader.readDouble(offsets[24]);
   object.id = id;
-  object.isCustom = reader.readBool(offsets[24]);
-  object.letterSpacingDelta = reader.readDouble(offsets[25]);
-  object.lineHeightScale = reader.readDouble(offsets[26]);
-  object.motionMode = reader.readString(offsets[27]);
-  object.name = reader.readString(offsets[28]);
-  object.primaryTextColorValue = reader.readLongOrNull(offsets[29]);
-  object.reducedMotion = reader.readBool(offsets[30]);
-  object.secondaryTextColorValue = reader.readLongOrNull(offsets[31]);
-  object.showDate = reader.readBool(offsets[32]);
-  object.showIcons = reader.readBool(offsets[33]);
-  object.showSeconds = reader.readBool(offsets[34]);
-  object.textAlignment = reader.readString(offsets[35]);
-  object.textCase = reader.readString(offsets[36]);
-  object.verticalSpacing = reader.readDouble(offsets[37]);
-  object.visibleAppCount = reader.readLong(offsets[38]);
+  object.isCustom = reader.readBool(offsets[25]);
+  object.letterSpacingDelta = reader.readDouble(offsets[26]);
+  object.lineHeightScale = reader.readDouble(offsets[27]);
+  object.motionMode = reader.readString(offsets[28]);
+  object.name = reader.readString(offsets[29]);
+  object.primaryTextColorValue = reader.readLongOrNull(offsets[30]);
+  object.reducedMotion = reader.readBool(offsets[31]);
+  object.secondaryTextColorValue = reader.readLongOrNull(offsets[32]);
+  object.showDate = reader.readBool(offsets[33]);
+  object.showIcons = reader.readBool(offsets[34]);
+  object.showSeconds = reader.readBool(offsets[35]);
+  object.textAlignment = reader.readString(offsets[36]);
+  object.textCase = reader.readString(offsets[37]);
+  object.verticalSpacing = reader.readDouble(offsets[38]);
+  object.visibleAppCount = reader.readLong(offsets[39]);
   return object;
 }
 
@@ -385,48 +392,50 @@ P _themeConfigDeserializeProp<P>(
     case 16:
       return (reader.readBool(offset)) as P;
     case 17:
-      return (reader.readDouble(offset)) as P;
-    case 18:
-      return (reader.readLongOrNull(offset)) as P;
-    case 19:
-      return (reader.readDouble(offset)) as P;
-    case 20:
-      return (reader.readString(offset)) as P;
-    case 21:
-      return (reader.readDouble(offset)) as P;
-    case 22:
-      return (reader.readString(offset)) as P;
-    case 23:
-      return (reader.readDouble(offset)) as P;
-    case 24:
       return (reader.readBool(offset)) as P;
-    case 25:
+    case 18:
       return (reader.readDouble(offset)) as P;
+    case 19:
+      return (reader.readLongOrNull(offset)) as P;
+    case 20:
+      return (reader.readDouble(offset)) as P;
+    case 21:
+      return (reader.readString(offset)) as P;
+    case 22:
+      return (reader.readDouble(offset)) as P;
+    case 23:
+      return (reader.readString(offset)) as P;
+    case 24:
+      return (reader.readDouble(offset)) as P;
+    case 25:
+      return (reader.readBool(offset)) as P;
     case 26:
       return (reader.readDouble(offset)) as P;
     case 27:
-      return (reader.readString(offset)) as P;
+      return (reader.readDouble(offset)) as P;
     case 28:
       return (reader.readString(offset)) as P;
     case 29:
-      return (reader.readLongOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 30:
-      return (reader.readBool(offset)) as P;
-    case 31:
       return (reader.readLongOrNull(offset)) as P;
-    case 32:
+    case 31:
       return (reader.readBool(offset)) as P;
+    case 32:
+      return (reader.readLongOrNull(offset)) as P;
     case 33:
       return (reader.readBool(offset)) as P;
     case 34:
       return (reader.readBool(offset)) as P;
     case 35:
-      return (reader.readString(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 36:
       return (reader.readString(offset)) as P;
     case 37:
-      return (reader.readDouble(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 38:
+      return (reader.readDouble(offset)) as P;
+    case 39:
       return (reader.readLong(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -2327,6 +2336,15 @@ extension ThemeConfigQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(property: r'hapticFeedback', value: value),
+      );
+    });
+  }
+
+  QueryBuilder<ThemeConfig, ThemeConfig, QAfterFilterCondition>
+  highContrastEqualTo(bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'highContrast', value: value),
       );
     });
   }
@@ -4328,6 +4346,19 @@ extension ThemeConfigQuerySortBy
     });
   }
 
+  QueryBuilder<ThemeConfig, ThemeConfig, QAfterSortBy> sortByHighContrast() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'highContrast', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ThemeConfig, ThemeConfig, QAfterSortBy>
+  sortByHighContrastDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'highContrast', Sort.desc);
+    });
+  }
+
   QueryBuilder<ThemeConfig, ThemeConfig, QAfterSortBy>
   sortByHorizontalPadding() {
     return QueryBuilder.apply(this, (query) {
@@ -4828,6 +4859,19 @@ extension ThemeConfigQuerySortThenBy
     });
   }
 
+  QueryBuilder<ThemeConfig, ThemeConfig, QAfterSortBy> thenByHighContrast() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'highContrast', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ThemeConfig, ThemeConfig, QAfterSortBy>
+  thenByHighContrastDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'highContrast', Sort.desc);
+    });
+  }
+
   QueryBuilder<ThemeConfig, ThemeConfig, QAfterSortBy>
   thenByHorizontalPadding() {
     return QueryBuilder.apply(this, (query) {
@@ -5255,6 +5299,12 @@ extension ThemeConfigQueryWhereDistinct
     });
   }
 
+  QueryBuilder<ThemeConfig, ThemeConfig, QDistinct> distinctByHighContrast() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'highContrast');
+    });
+  }
+
   QueryBuilder<ThemeConfig, ThemeConfig, QDistinct>
   distinctByHorizontalPadding() {
     return QueryBuilder.apply(this, (query) {
@@ -5520,6 +5570,12 @@ extension ThemeConfigQueryProperty
   QueryBuilder<ThemeConfig, bool, QQueryOperations> hapticFeedbackProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'hapticFeedback');
+    });
+  }
+
+  QueryBuilder<ThemeConfig, bool, QQueryOperations> highContrastProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'highContrast');
     });
   }
 

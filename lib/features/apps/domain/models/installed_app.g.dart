@@ -18,18 +18,23 @@ const InstalledAppSchema = CollectionSchema(
   id: 9146148135859156626,
   properties: {
     r'appName': PropertySchema(id: 0, name: r'appName', type: IsarType.string),
-    r'isFavorite': PropertySchema(
+    r'category': PropertySchema(
       id: 1,
+      name: r'category',
+      type: IsarType.string,
+    ),
+    r'isFavorite': PropertySchema(
+      id: 2,
       name: r'isFavorite',
       type: IsarType.bool,
     ),
-    r'isHidden': PropertySchema(id: 2, name: r'isHidden', type: IsarType.bool),
+    r'isHidden': PropertySchema(id: 3, name: r'isHidden', type: IsarType.bool),
     r'packageName': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'packageName',
       type: IsarType.string,
     ),
-    r'position': PropertySchema(id: 4, name: r'position', type: IsarType.long),
+    r'position': PropertySchema(id: 5, name: r'position', type: IsarType.long),
   },
 
   estimateSize: _installedAppEstimateSize,
@@ -68,6 +73,7 @@ int _installedAppEstimateSize(
 ) {
   var bytesCount = offsets.last;
   bytesCount += 3 + object.appName.length * 3;
+  bytesCount += 3 + object.category.length * 3;
   bytesCount += 3 + object.packageName.length * 3;
   return bytesCount;
 }
@@ -79,10 +85,11 @@ void _installedAppSerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeString(offsets[0], object.appName);
-  writer.writeBool(offsets[1], object.isFavorite);
-  writer.writeBool(offsets[2], object.isHidden);
-  writer.writeString(offsets[3], object.packageName);
-  writer.writeLong(offsets[4], object.position);
+  writer.writeString(offsets[1], object.category);
+  writer.writeBool(offsets[2], object.isFavorite);
+  writer.writeBool(offsets[3], object.isHidden);
+  writer.writeString(offsets[4], object.packageName);
+  writer.writeLong(offsets[5], object.position);
 }
 
 InstalledApp _installedAppDeserialize(
@@ -93,11 +100,12 @@ InstalledApp _installedAppDeserialize(
 ) {
   final object = InstalledApp();
   object.appName = reader.readString(offsets[0]);
+  object.category = reader.readString(offsets[1]);
   object.id = id;
-  object.isFavorite = reader.readBool(offsets[1]);
-  object.isHidden = reader.readBool(offsets[2]);
-  object.packageName = reader.readString(offsets[3]);
-  object.position = reader.readLong(offsets[4]);
+  object.isFavorite = reader.readBool(offsets[2]);
+  object.isHidden = reader.readBool(offsets[3]);
+  object.packageName = reader.readString(offsets[4]);
+  object.position = reader.readLong(offsets[5]);
   return object;
 }
 
@@ -111,12 +119,14 @@ P _installedAppDeserializeProp<P>(
     case 0:
       return (reader.readString(offset)) as P;
     case 1:
-      return (reader.readBool(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 2:
       return (reader.readBool(offset)) as P;
     case 3:
-      return (reader.readString(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 4:
+      return (reader.readString(offset)) as P;
+    case 5:
       return (reader.readLong(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -478,6 +488,147 @@ extension InstalledAppQueryFilter
     });
   }
 
+  QueryBuilder<InstalledApp, InstalledApp, QAfterFilterCondition>
+  categoryEqualTo(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'category',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<InstalledApp, InstalledApp, QAfterFilterCondition>
+  categoryGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'category',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<InstalledApp, InstalledApp, QAfterFilterCondition>
+  categoryLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'category',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<InstalledApp, InstalledApp, QAfterFilterCondition>
+  categoryBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'category',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<InstalledApp, InstalledApp, QAfterFilterCondition>
+  categoryStartsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'category',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<InstalledApp, InstalledApp, QAfterFilterCondition>
+  categoryEndsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'category',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<InstalledApp, InstalledApp, QAfterFilterCondition>
+  categoryContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'category',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<InstalledApp, InstalledApp, QAfterFilterCondition>
+  categoryMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'category',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<InstalledApp, InstalledApp, QAfterFilterCondition>
+  categoryIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'category', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<InstalledApp, InstalledApp, QAfterFilterCondition>
+  categoryIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'category', value: ''),
+      );
+    });
+  }
+
   QueryBuilder<InstalledApp, InstalledApp, QAfterFilterCondition> idEqualTo(
     Id value,
   ) {
@@ -772,6 +923,18 @@ extension InstalledAppQuerySortBy
     });
   }
 
+  QueryBuilder<InstalledApp, InstalledApp, QAfterSortBy> sortByCategory() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'category', Sort.asc);
+    });
+  }
+
+  QueryBuilder<InstalledApp, InstalledApp, QAfterSortBy> sortByCategoryDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'category', Sort.desc);
+    });
+  }
+
   QueryBuilder<InstalledApp, InstalledApp, QAfterSortBy> sortByIsFavorite() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isFavorite', Sort.asc);
@@ -834,6 +997,18 @@ extension InstalledAppQuerySortThenBy
   QueryBuilder<InstalledApp, InstalledApp, QAfterSortBy> thenByAppNameDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'appName', Sort.desc);
+    });
+  }
+
+  QueryBuilder<InstalledApp, InstalledApp, QAfterSortBy> thenByCategory() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'category', Sort.asc);
+    });
+  }
+
+  QueryBuilder<InstalledApp, InstalledApp, QAfterSortBy> thenByCategoryDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'category', Sort.desc);
     });
   }
 
@@ -910,6 +1085,14 @@ extension InstalledAppQueryWhereDistinct
     });
   }
 
+  QueryBuilder<InstalledApp, InstalledApp, QDistinct> distinctByCategory({
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'category', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<InstalledApp, InstalledApp, QDistinct> distinctByIsFavorite() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'isFavorite');
@@ -948,6 +1131,12 @@ extension InstalledAppQueryProperty
   QueryBuilder<InstalledApp, String, QQueryOperations> appNameProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'appName');
+    });
+  }
+
+  QueryBuilder<InstalledApp, String, QQueryOperations> categoryProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'category');
     });
   }
 

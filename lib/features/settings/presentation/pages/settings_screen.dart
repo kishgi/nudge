@@ -1,6 +1,3 @@
-// ignore_for_file: deprecated_member_use
-// ignore_for_file: unused_local_variable
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -14,13 +11,20 @@ import '../../../../features/customization/domain/models/theme_config.dart';
 import '../../../../core/database/database_service.dart';
 import '../../../../features/focus/presentation/pages/focus_settings_screen.dart';
 import '../../../../features/usage/presentation/pages/dashboard_screen.dart';
+import '../../../../features/launcher/presentation/providers/launcher_state.dart';
+import '../../../../features/backup/presentation/pages/backup_restore_page.dart';
+import 'gesture_settings_page.dart';
+import 'widget_settings_page.dart';
+import 'home_settings_page.dart';
+import 'accessibility_settings_page.dart';
+import 'about_page.dart';
 
 // Helper extensions for styling.
 extension SettingsThemeExtension on BuildContext {
   NudgeThemeData get theme => NudgeTheme.of(this);
 }
 
-/// Root customization screen providing navigation to all appearance sub-sections.
+/// Root customization screen providing navigation to all settings sections.
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
@@ -50,7 +54,7 @@ class SettingsScreen extends ConsumerWidget {
               padding: EdgeInsets.symmetric(vertical: 24.0),
               child: NudgePreviewWidget(),
             ),
-            _buildSectionHeader(context, 'Customization'),
+            _buildSectionHeader(context, '1. Appearance'),
             _buildTile(
               context,
               icon: NudgeIconToken.palette,
@@ -63,66 +67,88 @@ class SettingsScreen extends ConsumerWidget {
             ),
             _buildTile(
               context,
-              icon: NudgeIconToken.font,
-              title: 'Typography',
-              subtitle: 'Font families, weights, scaling',
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const TypographySettingsPage()),
-              ),
-            ),
-            _buildTile(
-              context,
-              icon: NudgeIconToken.grid,
-              title: 'Icons',
-              subtitle: 'Icon packs, sizing, thickness',
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const IconSettingsPage()),
-              ),
-            ),
-            _buildTile(
-              context,
               icon: NudgeIconToken.theme,
-              title: 'Colors',
+              title: 'Color Customization',
               subtitle: 'Solid backgrounds & contrast safe text',
               onTap: () => Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const ColorSettingsPage()),
               ),
             ),
+            const SizedBox(height: 16),
+            _buildSectionHeader(context, '2. Typography'),
+            _buildTile(
+              context,
+              icon: NudgeIconToken.font,
+              title: 'Typography Settings',
+              subtitle: 'Font families, weights, size scale',
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const TypographySettingsPage()),
+              ),
+            ),
+            const SizedBox(height: 16),
+            _buildSectionHeader(context, '3. Icons'),
+            _buildTile(
+              context,
+              icon: NudgeIconToken.grid,
+              title: 'Icon Settings',
+              subtitle: 'Icon packs, sizing, thickness, opacity',
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const IconSettingsPage()),
+              ),
+            ),
+            const SizedBox(height: 16),
+            _buildSectionHeader(context, '4. Home'),
             _buildTile(
               context,
               icon: NudgeIconToken.apps,
-              title: 'Layout',
-              subtitle: 'Padding, density, app alignment',
+              title: 'Home Settings',
+              subtitle: 'Visible apps, padding, density, alignment',
               onTap: () => Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const LayoutSettingsPage()),
-              ),
-            ),
-            _buildTile(
-              context,
-              icon: NudgeIconToken.clock,
-              title: 'Clock & Date',
-              subtitle: 'Formats, seconds, alignment',
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const ClockSettingsPage()),
+                MaterialPageRoute(builder: (_) => const HomeSettingsPage()),
               ),
             ),
             _buildTile(
               context,
               icon: NudgeIconToken.device,
-              title: 'Motion & Haptics',
-              subtitle: 'Animation speed, haptic feedback',
+              title: 'Home Widgets',
+              subtitle: 'Clock, date, battery, focus timer',
               onTap: () => Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const MotionSettingsPage()),
+                MaterialPageRoute(builder: (_) => const WidgetSettingsPage()),
+              ),
+            ),
+            Consumer(
+              builder: (context, ref, _) {
+                final settings = ref.watch(launcherProvider).settings;
+                return _buildToggleTile(
+                  context,
+                  icon: NudgeIconToken.favorite,
+                  title: 'Smart Suggestions',
+                  subtitle: 'Time-aware app suggestions on home screen',
+                  value: settings.showSmartSuggestions,
+                  onChanged: (_) =>
+                      ref.read(launcherProvider.notifier).toggleSmartSuggestions(),
+                );
+              },
+            ),
+            const SizedBox(height: 16),
+            _buildSectionHeader(context, '5. Gestures'),
+            _buildTile(
+              context,
+              icon: NudgeIconToken.developer,
+              title: 'Gesture Configuration',
+              subtitle: 'Swipe, double-tap, long-press actions',
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const GestureSettingsPage()),
               ),
             ),
             const SizedBox(height: 16),
-            _buildSectionHeader(context, 'Digital Wellbeing'),
+            _buildSectionHeader(context, '6. Focus'),
             _buildTile(
               context,
               icon: NudgeIconToken.focus,
@@ -133,6 +159,8 @@ class SettingsScreen extends ConsumerWidget {
                 MaterialPageRoute(builder: (_) => const FocusSettingsPage()),
               ),
             ),
+            const SizedBox(height: 16),
+            _buildSectionHeader(context, '7. Usage'),
             _buildTile(
               context,
               icon: NudgeIconToken.success,
@@ -141,6 +169,42 @@ class SettingsScreen extends ConsumerWidget {
               onTap: () => Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const DashboardScreen()),
+              ),
+            ),
+            const SizedBox(height: 16),
+            _buildSectionHeader(context, '8. Accessibility'),
+            _buildTile(
+              context,
+              icon: NudgeIconToken.device,
+              title: 'Accessibility Options',
+              subtitle: 'High contrast, reduced motion, haptics',
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AccessibilitySettingsPage()),
+              ),
+            ),
+            const SizedBox(height: 16),
+            _buildSectionHeader(context, '9. Backup'),
+            _buildTile(
+              context,
+              icon: NudgeIconToken.share,
+              title: 'Backup & Restore',
+              subtitle: 'Local JSON export, import, factory reset',
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const BackupRestorePage()),
+              ),
+            ),
+            const SizedBox(height: 16),
+            _buildSectionHeader(context, '10. About'),
+            _buildTile(
+              context,
+              icon: NudgeIconToken.settings,
+              title: 'About Nudge',
+              subtitle: 'Version 1.0.0, principles, licenses',
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AboutPage()),
               ),
             ),
             const SizedBox(height: 40),
@@ -217,7 +281,52 @@ class SettingsScreen extends ConsumerWidget {
       ),
     );
   }
+
+  Widget _buildToggleTile(
+    BuildContext context, {
+    required NudgeIconToken icon,
+    required String title,
+    required String subtitle,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+  }) {
+    final t = context.theme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6.0),
+      child: Container(
+        padding: const EdgeInsets.all(16.0),
+        decoration: BoxDecoration(
+          color: t.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: t.divider),
+        ),
+        child: Row(
+          children: [
+            Icon(t.icons.resolve(icon), color: t.accent, size: 24),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: t.type.title.copyWith(color: t.primaryText)),
+                  const SizedBox(height: 4),
+                  Text(subtitle,
+                      style: t.type.caption.copyWith(color: t.secondaryText)),
+                ],
+              ),
+            ),
+            Switch(
+              value: value,
+              activeColor: t.accent,
+              onChanged: onChanged,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
+
 
 /// Live preview widget showing the clock and dynamic list layout in a simulated phone frame.
 class NudgePreviewWidget extends ConsumerWidget {

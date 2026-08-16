@@ -12,6 +12,12 @@ import '../../../focus/domain/services/app_launcher.dart';
 import '../../../focus/presentation/providers/focus_provider.dart';
 import '../../../settings/presentation/pages/settings_screen.dart';
 import '../../../focus/presentation/pages/focus_settings_screen.dart';
+import '../../../settings/presentation/pages/gesture_settings_page.dart';
+import '../../../settings/presentation/pages/widget_settings_page.dart';
+import '../../../settings/presentation/pages/accessibility_settings_page.dart';
+import '../../../settings/presentation/pages/home_settings_page.dart';
+import '../../../settings/presentation/pages/about_page.dart';
+import '../../../backup/presentation/pages/backup_restore_page.dart';
 import '../../../usage/presentation/pages/dashboard_screen.dart';
 import '../providers/launcher_state.dart';
 
@@ -89,28 +95,32 @@ class _SearchOverlayState extends ConsumerState<SearchOverlay> {
     switch (route) {
       case 'typography':
         page = const TypographySettingsPage();
-        break;
       case 'icons':
         page = const IconSettingsPage();
-        break;
       case 'colors':
         page = const ColorSettingsPage();
-        break;
       case 'layout':
         page = const LayoutSettingsPage();
-        break;
       case 'clock':
         page = const ClockSettingsPage();
-        break;
       case 'focus':
         page = const FocusSettingsPage();
-        break;
       case 'themes':
         page = const ThemesPage();
-        break;
       case 'wellbeing':
         page = const DashboardScreen();
-        break;
+      case 'gestures':
+        page = const GestureSettingsPage();
+      case 'widgets':
+        page = const WidgetSettingsPage();
+      case 'accessibility':
+        page = const AccessibilitySettingsPage();
+      case 'backup':
+        page = const BackupRestorePage();
+      case 'about':
+        page = const AboutPage();
+      case 'home':
+        page = const HomeSettingsPage();
     }
     if (page != null) {
       Navigator.push(context, MaterialPageRoute(builder: (_) => page!));

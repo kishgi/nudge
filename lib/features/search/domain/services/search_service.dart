@@ -20,6 +20,12 @@ abstract final class SearchService {
     SearchItem(type: SearchItemType.setting, title: 'Focus Settings', subtitle: 'App blocking, scheduled rules, delays', settingRoute: 'focus'),
     SearchItem(type: SearchItemType.setting, title: 'Themes Preset Manager', subtitle: 'Load, save, or edit theme presets', settingRoute: 'themes'),
     SearchItem(type: SearchItemType.setting, title: 'Wellbeing Dashboard', subtitle: 'Screen time, app stats, daily usage', settingRoute: 'wellbeing'),
+    SearchItem(type: SearchItemType.setting, title: 'Gesture Settings', subtitle: 'Swipe, double-tap, long-press actions', settingRoute: 'gestures'),
+    SearchItem(type: SearchItemType.setting, title: 'Home Widgets', subtitle: 'Clock, date, battery, focus timer widgets', settingRoute: 'widgets'),
+    SearchItem(type: SearchItemType.setting, title: 'Accessibility Options', subtitle: 'High contrast, reduced motion, haptics', settingRoute: 'accessibility'),
+    SearchItem(type: SearchItemType.setting, title: 'Backup & Restore', subtitle: 'Local JSON export, import, factory reset', settingRoute: 'backup'),
+    SearchItem(type: SearchItemType.setting, title: 'About Nudge', subtitle: 'Version 1.0.0, principles, licenses', settingRoute: 'about'),
+    SearchItem(type: SearchItemType.setting, title: 'Home Settings', subtitle: 'Visible apps, padding, density, alignment', settingRoute: 'home'),
   ];
 
   static final List<SearchItem> _staticActions = [

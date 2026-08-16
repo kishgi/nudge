@@ -149,7 +149,21 @@ enum NudgeThemePreset {
 NudgeThemeData buildThemeDataFromConfig(ThemeConfig config, Brightness systemBrightness) {
   // 1. Resolve colors
   NudgeColorScheme colors;
-  if (config.colorPreset == 'light') {
+  if (config.highContrast) {
+    final isLight = config.colorPreset == 'light';
+    colors = NudgeColorScheme(
+      background: isLight ? const Color(0xFFFFFFFF) : const Color(0xFF000000),
+      surface: isLight ? const Color(0xFFF2F2F2) : const Color(0xFF141414),
+      primaryText: isLight ? const Color(0xFF000000) : const Color(0xFFFFFFFF),
+      secondaryText: isLight ? const Color(0xFF1A1A1A) : const Color(0xFFE6E6E6),
+      mutedText: isLight ? const Color(0xFF333333) : const Color(0xFFCCCCCC),
+      accent: isLight ? const Color(0xFF0000D0) : const Color(0xFFFFE600),
+      accentLight: isLight ? const Color(0xFF3333FF) : const Color(0xFFFFFF66),
+      accentDark: isLight ? const Color(0xFF000088) : const Color(0xFFB3A200),
+      divider: isLight ? const Color(0xFF000000) : const Color(0xFFFFFFFF),
+      brightness: isLight ? Brightness.light : Brightness.dark,
+    );
+  } else if (config.colorPreset == 'light') {
     colors = NudgeColorScheme.light;
   } else if (config.colorPreset == 'dark') {
     colors = NudgeColorScheme.dark;

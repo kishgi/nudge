@@ -4,7 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar_community/isar.dart';
 
 import '../../../../core/database/database_service.dart';
+import '../../../apps/domain/models/installed_app.dart';
 import '../../../customization/domain/models/app_settings.dart';
+import '../../domain/models/home_widget_config.dart';
 
 /// State class for the launcher.
 final class LauncherState {
@@ -81,12 +83,14 @@ final class LauncherNotifier extends Notifier<LauncherState> {
           final packageName = appObj['packageName'] as String?;
           final appName = appObj['appName'] as String?;
           final iconBytes = appObj['icon'] as Uint8List?;
+          final category = appObj['category'] as String? ?? 'Other';
 
           if (packageName != null && appName != null) {
             nativePackNames.add(packageName);
             nativeAppsMap[packageName] = {
               'appName': appName,
               'packageName': packageName,
+              'category': category,
             };
             if (iconBytes != null) {
               newIcons[packageName] = iconBytes;
@@ -116,14 +120,24 @@ final class LauncherNotifier extends Notifier<LauncherState> {
             final newApp = InstalledApp()
               ..packageName = packageName
               ..appName = nativeData['appName'] as String
+              ..category = nativeData['category'] as String? ?? 'Other'
               ..isFavorite = false
               ..isHidden = false
               ..position = 0;
             await isar.installedApps.put(newApp);
-          } else if (existing.appName != nativeData['appName']) {
-            // Update name
-            existing.appName = nativeData['appName'] as String;
-            await isar.installedApps.put(existing);
+          } else {
+            // Update name and category if changed
+            bool changed = false;
+            if (existing.appName != nativeData['appName']) {
+              existing.appName = nativeData['appName'] as String;
+              changed = true;
+            }
+            final newCat = nativeData['category'] as String? ?? 'Other';
+            if (existing.category != newCat) {
+              existing.category = newCat;
+              changed = true;
+            }
+            if (changed) await isar.installedApps.put(existing);
           }
         }
       });
@@ -226,6 +240,74 @@ final class LauncherNotifier extends Notifier<LauncherState> {
     final db = ref.read(databaseServiceProvider);
     final apps = await db.isar.installedApps.where().findAll();
     state = state.copyWith(allApps: apps);
+  }
+
+  // ─── Settings persistence helpers ──────────────────────────────────────────
+
+  Future<AppSettings> _loadOrCreateSettings() async {
+    final db = ref.read(databaseServiceProvider);
+    final existing = await db.isar.appSettings.where().findFirst();
+    return existing ?? AppSettings();
+  }
+
+  Future<void> _persistSettings(AppSettings settings) async {
+    final db = ref.read(databaseServiceProvider);
+    await db.isar.writeTxn(() => db.isar.appSettings.put(settings));
+    state = state.copyWith(settings: settings);
+  }
+
+  /// Updates the action bound to one gesture key.
+  Future<void> updateGesture(String gestureKey, String actionKey) async {
+    final settings = await _loadOrCreateSettings();
+    switch (gestureKey) {
+      case 'swipeUp': settings.gestureSwipeUp = actionKey;
+      case 'swipeDown': settings.gestureSwipeDown = actionKey;
+      case 'doubleTap': settings.gestureDoubleTap = actionKey;
+      case 'longPress': settings.gestureLongPress = actionKey;
+    }
+    await _persistSettings(settings);
+  }
+
+  /// Persists the ordered + visible widget configuration list.
+  Future<void> updateWidgets(List<HomeWidgetConfig> configs) async {
+    final settings = await _loadOrCreateSettings();
+    settings.homeWidgetsJson = HomeWidgetConfigList.encode(configs);
+    await _persistSettings(settings);
+  }
+
+  /// Persists the widget strip vertical spacing.
+  Future<void> updateWidgetSpacing(double spacing) async {
+    final settings = await _loadOrCreateSettings();
+    settings.widgetSpacing = spacing;
+    await _persistSettings(settings);
+  }
+
+  /// Persists the widget strip alignment ('left', 'center', 'right').
+  Future<void> updateWidgetAlignment(String alignment) async {
+    final settings = await _loadOrCreateSettings();
+    settings.widgetAlignment = alignment;
+    await _persistSettings(settings);
+  }
+
+  /// Persists the drawer sort mode.
+  Future<void> updateDrawerSortMode(String mode) async {
+    final settings = await _loadOrCreateSettings();
+    settings.drawerSortMode = mode;
+    await _persistSettings(settings);
+  }
+
+  /// Persists the drawer scroll offset.
+  Future<void> saveDrawerScrollOffset(double offset) async {
+    final settings = await _loadOrCreateSettings();
+    settings.drawerScrollOffset = offset;
+    await _persistSettings(settings);
+  }
+
+  /// Toggles smart suggestions visibility.
+  Future<void> toggleSmartSuggestions() async {
+    final settings = await _loadOrCreateSettings();
+    settings.showSmartSuggestions = !settings.showSmartSuggestions;
+    await _persistSettings(settings);
   }
 }
 

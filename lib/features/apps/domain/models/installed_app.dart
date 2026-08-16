@@ -11,6 +11,11 @@ class InstalledApp {
 
   late String appName;
 
+  /// App category seeded from Android's ApplicationInfo.category.
+  /// One of: 'Game', 'Audio', 'Video', 'Image', 'Social', 'News',
+  /// 'Maps', 'Productivity', 'Other'.
+  String category = 'Other';
+
   bool isFavorite = false;
   bool isHidden = false;
   int position = 0; // position in favorites list
