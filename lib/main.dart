@@ -1,15 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'core/database/database_service.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/nudge_theme.dart';
+import 'core/theme/theme_presets.dart';
 import 'core/theme/theme_provider.dart';
-import 'features/settings/presentation/pages/design_preview_page.dart';
+import 'features/launcher/presentation/pages/home_screen.dart';
+import 'features/launcher/presentation/providers/launcher_state.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  final dbService = DatabaseService();
+  await dbService.init();
+
   runApp(
-    const ProviderScope(
-      child: NudgeApp(),
+    ProviderScope(
+      overrides: [
+        databaseServiceProvider.overrideWithValue(dbService),
+      ],
+      child: const NudgeApp(),
     ),
   );
 }
@@ -26,6 +37,21 @@ class _NudgeAppState extends ConsumerState<NudgeApp> with WidgetsBindingObserver
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    
+    // Sync initial system brightness
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final brightness = WidgetsBinding.instance.platformDispatcher.platformBrightness;
+      ref.read(nudgeThemeProvider.notifier).setSystemBrightness(brightness);
+
+      // Restore user's saved theme from database settings
+      final state = ref.read(launcherProvider);
+      final savedPresetName = state.settings.themePresetName;
+      final match = NudgeThemePreset.values.firstWhere(
+        (p) => p.name == savedPresetName,
+        orElse: () => NudgeThemePreset.pure,
+      );
+      ref.read(nudgeThemeProvider.notifier).setPreset(match);
+    });
   }
 
   @override
@@ -53,7 +79,7 @@ class _NudgeAppState extends ConsumerState<NudgeApp> with WidgetsBindingObserver
         debugShowCheckedModeBanner: false,
         theme: materialTheme,
         themeMode: ThemeMode.light, // MaterialApp theming is handled by NudgeTheme
-        home: const DesignPreviewPage(),
+        home: const HomeScreen(),
       ),
     );
   }
