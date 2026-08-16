@@ -250,7 +250,8 @@ void main() {
 
     test('terminal preset uses monospace font', () {
       final data = NudgeThemePreset.terminal.build();
-      expect(data.type.fontFamily, 'monospace');
+      // Terminal uses JetBrains Mono — a bundled monospace font.
+      expect(data.type.fontFamily, 'JetBrainsMono');
     });
   });
 

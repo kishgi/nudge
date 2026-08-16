@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/nudge_radius.dart';
 import '../../../../core/theme/nudge_spacing.dart';
 import '../../../../core/theme/nudge_theme.dart';
+import '../../../../core/theme/nudge_icons.dart';
 import '../../../apps/domain/models/installed_app.dart';
 import '../../../search/domain/services/search_service.dart';
+import '../../../settings/presentation/pages/settings_screen.dart';
 import '../providers/launcher_state.dart';
 
 class AppDrawer extends ConsumerStatefulWidget {
@@ -55,7 +58,7 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
         ? visibleApps
         : SearchService.search(visibleApps, _query);
 
-    final mode = state.settings.layoutMode; // TEXT, ICON, HYBRID
+    final showIcons = t.layoutSettings.showIcons;
 
     return Scaffold(
       backgroundColor: t.background,
@@ -71,13 +74,22 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
                 style: t.type.body.copyWith(color: t.primaryText),
                 decoration: InputDecoration(
                   hintText: 'Search apps...',
-                  prefixIcon: Icon(Icons.search, color: t.secondaryText),
+                  prefixIcon: Icon(t.icons.resolve(NudgeIconToken.search), color: t.secondaryText),
                   suffixIcon: _query.isNotEmpty
                       ? IconButton(
-                          icon: Icon(Icons.clear, color: t.secondaryText),
+                          icon: Icon(t.icons.resolve(NudgeIconToken.close), color: t.secondaryText),
                           onPressed: () => _searchController.clear(),
                         )
-                      : null,
+                      : IconButton(
+                          icon: Icon(t.icons.resolve(NudgeIconToken.settings), color: t.secondaryText),
+                          onPressed: () {
+                            HapticFeedback.lightImpact();
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                            );
+                          },
+                        ),
                 ),
               ),
             ),
@@ -98,6 +110,7 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
                       itemBuilder: (context, index) {
                         final app = filteredApps[index];
                         final iconBytes = state.appIcons[app.packageName];
+                        final formattedName = t.type.applyCase(app.appName);
 
                         return Material(
                           color: Colors.transparent,
@@ -112,79 +125,68 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
                               } else {
                                 messenger.showSnackBar(
                                   SnackBar(
-                                    content: Text('Failed to launch ${app.appName}'),
+                                    content: Text('Failed to launch $formattedName'),
                                     backgroundColor: t.semanticColors.error,
                                   ),
                                 );
                               }
                             },
-                            onLongPress: () => _showAppActions(context, app, notifier, t),
+                            onLongPress: () {
+                              HapticFeedback.selectionClick();
+                              _showAppActions(context, app, notifier, t);
+                            },
                             child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                vertical: NudgeSpacing.md,
+                              padding: EdgeInsets.symmetric(
+                                vertical: t.layoutSettings.density.verticalPadding,
                                 horizontal: NudgeSpacing.sm,
                               ),
                               child: Row(
+                                mainAxisAlignment: t.layoutSettings.alignment == Alignment.center
+                                    ? MainAxisAlignment.center
+                                    : (t.layoutSettings.alignment == Alignment.centerRight
+                                        ? MainAxisAlignment.end
+                                        : MainAxisAlignment.start),
                                 children: [
-                                  // Icon if HYBRID or ICON mode
-                                  if (mode == 'ICON' || mode == 'HYBRID') ...[
+                                  // Icon if enabled in layout
+                                  if (showIcons) ...[
                                     ClipRRect(
                                       borderRadius: NudgeRadius.smallAll,
                                       child: iconBytes != null
-                                          ? Image.memory(
-                                              iconBytes,
-                                              width: 36,
-                                              height: 36,
-                                              fit: BoxFit.cover,
+                                          ? Opacity(
+                                              opacity: t.iconSettings.opacity,
+                                              child: Image.memory(
+                                                iconBytes,
+                                                width: t.iconSettings.size,
+                                                height: t.iconSettings.size,
+                                                fit: BoxFit.cover,
+                                              ),
                                             )
                                           : Container(
-                                              width: 36,
-                                              height: 36,
+                                              width: t.iconSettings.size,
+                                              height: t.iconSettings.size,
                                               color: t.divider,
                                               child: Icon(
                                                 Icons.android,
                                                 color: t.secondaryText,
-                                                size: 20,
+                                                size: t.iconSettings.size / 2,
                                               ),
                                             ),
                                     ),
                                     const SizedBox(width: NudgeSpacing.md),
                                   ],
                                   // App Name
-                                  if (mode == 'TEXT' || mode == 'HYBRID')
-                                    Expanded(
-                                      child: Text(
-                                        app.appName,
-                                        style: t.type.body.copyWith(
-                                          color: t.primaryText,
-                                          fontWeight: FontWeight.w400,
-                                        ),
+                                  Expanded(
+                                    child: Text(
+                                      formattedName,
+                                      style: t.type.body.copyWith(
+                                        color: t.primaryText,
                                       ),
+                                      textAlign: t.type.textAlign,
                                     ),
-                                  if (mode == 'ICON')
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            app.appName,
-                                            style: t.type.body.copyWith(
-                                              color: t.primaryText,
-                                            ),
-                                          ),
-                                          Text(
-                                            app.packageName,
-                                            style: t.type.caption.copyWith(
-                                              color: t.mutedText,
-                                            ),
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ],
-                                      ),
-                                    ),
+                                  ),
                                   if (app.isFavorite)
                                     Icon(
-                                      Icons.star,
+                                      t.icons.resolve(NudgeIconToken.favorite),
                                       color: t.accent,
                                       size: 16,
                                     ),
@@ -232,7 +234,7 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
               Divider(height: 1, color: t.divider),
               ListTile(
                 leading: Icon(
-                  app.isFavorite ? Icons.star_border : Icons.star,
+                  t.icons.resolve(NudgeIconToken.favorite),
                   color: t.primaryText,
                 ),
                 title: Text(
@@ -245,7 +247,7 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
                 },
               ),
               ListTile(
-                leading: Icon(Icons.visibility_off_outlined, color: t.primaryText),
+                leading: Icon(t.icons.resolve(NudgeIconToken.eyeOff), color: t.primaryText),
                 title: Text(
                   'Hide App',
                   style: t.type.body.copyWith(color: t.primaryText),

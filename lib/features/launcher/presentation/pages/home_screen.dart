@@ -1,13 +1,14 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/nudge_radius.dart';
 import '../../../../core/theme/nudge_spacing.dart';
 import '../../../../core/theme/nudge_theme.dart';
-import '../../../../core/theme/theme_presets.dart';
-import '../../../../core/theme/theme_provider.dart';
+import '../../../../core/theme/nudge_icons.dart';
 import '../../../apps/domain/models/installed_app.dart';
+import '../../../settings/presentation/pages/settings_screen.dart';
 import '../providers/launcher_state.dart';
 import 'app_drawer.dart';
 import 'search_overlay.dart';
@@ -42,27 +43,59 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     super.dispose();
   }
 
+  String _formatDate(DateTime date, String pattern) {
+    const weekdaysShort = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const weekdaysFull = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    const monthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthsFull = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    
+    final wdShort = weekdaysShort[date.weekday - 1];
+    final wdFull = weekdaysFull[date.weekday - 1];
+    final mShort = monthsShort[date.month - 1];
+    final mFull = monthsFull[date.month - 1];
+    
+    if (pattern == 'EEE, MMM d') {
+      return '$wdShort, $mShort ${date.day}';
+    } else if (pattern == 'EEEE, MMMM d') {
+      return '$wdFull, $mFull ${date.day}';
+    } else if (pattern == 'dd/MM/yyyy') {
+      return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
+    } else if (pattern == 'yyyy-MM-dd') {
+      return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+    }
+    return '$wdShort, $mShort ${date.day}';
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = context.nudgeTheme;
     final state = ref.watch(launcherProvider);
     final notifier = ref.read(launcherProvider.notifier);
 
-    // Filter and sort favorites by position
-    final favorites = state.allApps.where((app) => app.isFavorite && !app.isHidden).toList();
-    favorites.sort((a, b) => a.position.compareTo(b.position));
+    // Filter and sort favorites by position, limited to user-defined count
+    final rawFavorites = state.allApps.where((app) => app.isFavorite && !app.isHidden).toList();
+    rawFavorites.sort((a, b) => a.position.compareTo(b.position));
+    final favorites = rawFavorites.take(t.layoutSettings.visibleAppCount).toList();
 
-    final hour = _currentTime.hour.toString().padLeft(2, '0');
-    final minute = _currentTime.minute.toString().padLeft(2, '0');
-    final timeString = "$hour:$minute";
+    // Time formatting
+    final String timeString;
+    if (t.clockSettings.clockFormat == '12') {
+      final hour = _currentTime.hour == 0 ? 12 : (_currentTime.hour > 12 ? _currentTime.hour - 12 : _currentTime.hour);
+      final period = _currentTime.hour >= 12 ? 'PM' : 'AM';
+      final min = _currentTime.minute.toString().padLeft(2, '0');
+      final sec = t.clockSettings.showSeconds ? ':${_currentTime.second.toString().padLeft(2, '0')}' : '';
+      timeString = '$hour:$min$sec $period';
+    } else {
+      final hour = _currentTime.hour.toString().padLeft(2, '0');
+      final min = _currentTime.minute.toString().padLeft(2, '0');
+      final sec = t.clockSettings.showSeconds ? ':${_currentTime.second.toString().padLeft(2, '0')}' : '';
+      timeString = '$hour:$min$sec';
+    }
 
-    const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    final weekday = weekdays[_currentTime.weekday - 1];
-    final month = months[_currentTime.month - 1];
-    final dateString = "$weekday, $month ${_currentTime.day}";
+    final dateString = _formatDate(_currentTime, t.clockSettings.dateFormat);
 
-    final mode = state.settings.layoutMode; // TEXT, ICON, HYBRID
+    // Check motion mode
+    final transitionDuration = t.motion.normal;
 
     return Scaffold(
       backgroundColor: t.background,
@@ -71,173 +104,194 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         onVerticalDragEnd: (details) {
           if (details.primaryVelocity == null) return;
           if (details.primaryVelocity! < -300) {
-            // Swipe Up -> App Drawer
             _openAppDrawer(context);
           } else if (details.primaryVelocity! > 300) {
-            // Swipe Down -> Search
             _openSearchOverlay(context);
           }
         },
-        onLongPress: () => _showCustomizationDialog(context, state, notifier, t),
+        onLongPress: () {
+          if (t.clockSettings.clockFontWeight != null && t.clockSettings.showSeconds) {
+            HapticFeedback.heavyImpact();
+          } else {
+            HapticFeedback.mediumImpact();
+          }
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const SettingsScreen()),
+          );
+        },
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: NudgeSpacing.pageHorizontal,
+            padding: EdgeInsets.symmetric(
+              horizontal: t.layoutSettings.horizontalPadding,
               vertical: NudgeSpacing.pageVertical,
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: NudgeSpacing.xl),
-                // Time & Date Display
-                if (state.settings.showTime)
-                  Text(
-                    timeString,
-                    style: t.type.display.copyWith(
-                      color: t.primaryText,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                if (state.settings.showDate) ...[
-                  const SizedBox(height: NudgeSpacing.xs),
-                  Text(
-                    dateString,
-                    style: t.type.body.copyWith(
-                      color: t.secondaryText,
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-                ],
-                const SizedBox(height: NudgeSpacing.huge),
+            child: AnimatedContainer(
+              duration: transitionDuration,
+              curve: t.motion.curve,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(height: NudgeSpacing.xl),
+                  // Clock section at TOP
+                  if (t.layoutSettings.clockPosition == 'top') ...[
+                    _buildClockSection(t, timeString, dateString),
+                    SizedBox(height: t.layoutSettings.verticalSpacing),
+                  ],
 
-                // Favorites Header
-                Text(
-                  'FAVORITES',
-                  style: t.type.caption.copyWith(
-                    color: t.mutedText,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 1.2,
-                  ),
-                ),
-                const SizedBox(height: NudgeSpacing.md),
+                  // Favorites List Section
+                  Expanded(
+                    child: favorites.isEmpty
+                        ? Center(
+                            child: Text(
+                              'Swipe up for drawer to add favorites\nLong-press background for settings',
+                              style: t.type.body.copyWith(color: t.mutedText),
+                              textAlign: TextAlign.center,
+                            ),
+                          )
+                        : Theme(
+                            data: Theme.of(context).copyWith(
+                              canvasColor: Colors.transparent,
+                            ),
+                            child: ReorderableListView.builder(
+                              physics: const BouncingScrollPhysics(),
+                              itemCount: favorites.length,
+                              // ignore: deprecated_member_use
+                              onReorder: notifier.reorderFavorites,
+                              itemBuilder: (context, index) {
+                                final app = favorites[index];
+                                final iconBytes = state.appIcons[app.packageName];
+                                final formattedName = t.type.applyCase(app.appName);
 
-                // Favorites List
-                Expanded(
-                  child: favorites.isEmpty
-                      ? Center(
-                          child: Text(
-                            'Swipe up for drawer to add favorites\nLong-press background for settings',
-                            style: t.type.body.copyWith(color: t.mutedText),
-                            textAlign: TextAlign.center,
-                          ),
-                        )
-                      : Theme(
-                          // Override canvas color to transparent for dragging shadow
-                          data: Theme.of(context).copyWith(
-                            canvasColor: Colors.transparent,
-                          ),
-                          child: ReorderableListView.builder(
-                            physics: const BouncingScrollPhysics(),
-                            itemCount: favorites.length,
-                            // ignore: deprecated_member_use
-                            onReorder: notifier.reorderFavorites,
-                            itemBuilder: (context, index) {
-                              final app = favorites[index];
-                              final iconBytes = state.appIcons[app.packageName];
-
-                              return Material(
-                                key: ValueKey(app.packageName),
-                                color: Colors.transparent,
-                                child: InkWell(
-                                  borderRadius: NudgeRadius.smallAll,
-                                  onTap: () async {
-                                    final messenger = ScaffoldMessenger.of(context);
-                                    final success = await notifier.launchApp(app.packageName);
-                                    if (!success) {
-                                      messenger.showSnackBar(
-                                        SnackBar(
-                                          content: Text('Failed to launch ${app.appName}'),
-                                          backgroundColor: t.semanticColors.error,
-                                        ),
-                                      );
-                                    }
-                                  },
-                                  onLongPress: () =>
-                                      _showFavoriteActions(context, app, notifier, t),
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: NudgeSpacing.md,
-                                      horizontal: NudgeSpacing.sm,
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        // Grab handle or status indicator
-                                        Icon(
-                                          Icons.drag_indicator,
-                                          color: t.mutedText.withValues(alpha: 0.5),
-                                          size: 18,
-                                        ),
-                                        const SizedBox(width: NudgeSpacing.md),
-
-                                        // Icon if HYBRID or ICON mode
-                                        if (mode == 'ICON' || mode == 'HYBRID') ...[
-                                          ClipRRect(
-                                            borderRadius: NudgeRadius.smallAll,
-                                            child: iconBytes != null
-                                                ? Image.memory(
-                                                    iconBytes,
-                                                    width: 32,
-                                                    height: 32,
-                                                    fit: BoxFit.cover,
-                                                  )
-                                                : Container(
-                                                    width: 32,
-                                                    height: 32,
-                                                    color: t.divider,
-                                                    child: Icon(
-                                                      Icons.android,
-                                                      color: t.secondaryText,
-                                                      size: 16,
+                                return Material(
+                                  key: ValueKey(app.packageName),
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    borderRadius: NudgeRadius.smallAll,
+                                    onTap: () async {
+                                      final messenger = ScaffoldMessenger.of(context);
+                                      final success = await notifier.launchApp(app.packageName);
+                                      if (!success) {
+                                        messenger.showSnackBar(
+                                          SnackBar(
+                                            content: Text('Failed to launch $formattedName'),
+                                            backgroundColor: t.semanticColors.error,
+                                          ),
+                                        );
+                                      }
+                                    },
+                                    onLongPress: () {
+                                      HapticFeedback.selectionClick();
+                                      _showFavoriteActions(context, app, notifier, t);
+                                    },
+                                    child: Padding(
+                                      padding: EdgeInsets.symmetric(
+                                        vertical: t.layoutSettings.density.verticalPadding,
+                                        horizontal: NudgeSpacing.sm,
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment: t.layoutSettings.alignment == Alignment.center
+                                            ? MainAxisAlignment.center
+                                            : (t.layoutSettings.alignment == Alignment.centerRight
+                                                ? MainAxisAlignment.end
+                                                : MainAxisAlignment.start),
+                                        children: [
+                                          if (t.layoutSettings.showIcons) ...[
+                                            ClipRRect(
+                                              borderRadius: NudgeRadius.smallAll,
+                                              child: iconBytes != null
+                                                  ? Opacity(
+                                                      opacity: t.iconSettings.opacity,
+                                                      child: Image.memory(
+                                                        iconBytes,
+                                                        width: t.iconSettings.size,
+                                                        height: t.iconSettings.size,
+                                                        fit: BoxFit.cover,
+                                                      ),
+                                                    )
+                                                  : Container(
+                                                      width: t.iconSettings.size,
+                                                      height: t.iconSettings.size,
+                                                      color: t.divider,
+                                                      child: Icon(
+                                                        Icons.android,
+                                                        color: t.secondaryText,
+                                                        size: t.iconSettings.size / 2,
+                                                      ),
                                                     ),
-                                                  ),
+                                            ),
+                                            const SizedBox(width: NudgeSpacing.md),
+                                          ],
+                                          Text(
+                                            formattedName,
+                                            style: t.type.body.copyWith(color: t.primaryText),
+                                            textAlign: t.type.textAlign,
                                           ),
-                                          const SizedBox(width: NudgeSpacing.md),
                                         ],
-
-                                        // App Name
-                                        if (mode == 'TEXT' || mode == 'HYBRID')
-                                          Expanded(
-                                            child: Text(
-                                              app.appName,
-                                              style: t.type.body.copyWith(
-                                                color: t.primaryText,
-                                                fontWeight: FontWeight.w400,
-                                              ),
-                                            ),
-                                          ),
-                                        if (mode == 'ICON')
-                                          Expanded(
-                                            child: Text(
-                                              app.appName,
-                                              style: t.type.body.copyWith(
-                                                color: t.primaryText,
-                                              ),
-                                            ),
-                                          ),
-                                      ],
+                                      ),
                                     ),
                                   ),
-                                ),
-                              );
-                            },
+                                );
+                              },
+                            ),
                           ),
-                        ),
-                ),
-              ],
+                  ),
+
+                  // Clock section at BOTTOM
+                  if (t.layoutSettings.clockPosition == 'bottom') ...[
+                    SizedBox(height: t.layoutSettings.verticalSpacing),
+                    _buildClockSection(t, timeString, dateString),
+                  ],
+                ],
+              ),
             ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildClockSection(NudgeThemeData t, String timeStr, String dateStr) {
+    TextAlign clockTextAlign = TextAlign.left;
+    if (t.clockSettings.alignment == Alignment.center) {
+      clockTextAlign = TextAlign.center;
+    } else if (t.clockSettings.alignment == Alignment.centerRight) {
+      clockTextAlign = TextAlign.right;
+    }
+
+    return Column(
+      crossAxisAlignment: t.clockSettings.alignment == Alignment.center
+          ? CrossAxisAlignment.center
+          : (t.clockSettings.alignment == Alignment.centerRight
+              ? CrossAxisAlignment.end
+              : CrossAxisAlignment.start),
+      children: [
+        Text(
+          timeStr,
+          textAlign: clockTextAlign,
+          style: TextStyle(
+            fontFamily: t.clockSettings.clockFontFamily ?? t.type.fontFamily,
+            fontSize: t.type.display.fontSize! * t.clockSettings.clockSizeScale,
+            fontWeight: t.clockSettings.clockFontWeight != null
+                ? FontWeight.values.firstWhere((w) => w.value == t.clockSettings.clockFontWeight)
+                : t.type.display.fontWeight,
+            color: t.primaryText,
+            letterSpacing: t.type.display.letterSpacing,
+            height: t.type.display.height,
+          ),
+        ),
+        if (t.clockSettings.showDate) ...[
+          const SizedBox(height: NudgeSpacing.xs),
+          Text(
+            dateStr,
+            textAlign: clockTextAlign,
+            style: t.type.body.copyWith(
+              color: t.secondaryText,
+              fontWeight: FontWeight.w400,
+            ),
+          ),
+        ],
+      ],
     );
   }
 
@@ -308,7 +362,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
               Divider(height: 1, color: t.divider),
               ListTile(
-                leading: Icon(Icons.star_border, color: t.primaryText),
+                leading: Icon(t.icons.resolve(NudgeIconToken.delete), color: t.primaryText),
                 title: Text(
                   'Remove from Favorites',
                   style: t.type.body.copyWith(color: t.primaryText),
@@ -321,100 +375,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               const SizedBox(height: NudgeSpacing.md),
             ],
           ),
-        );
-      },
-    );
-  }
-
-  void _showCustomizationDialog(
-    BuildContext context,
-    LauncherState state,
-    LauncherNotifier notifier,
-    NudgeThemeData t,
-  ) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          backgroundColor: t.surface,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(NudgeRadius.medium),
-            side: BorderSide(color: t.divider, width: 1),
-          ),
-          title: Text(
-            'Launcher Configuration',
-            style: t.type.title.copyWith(color: t.primaryText),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'LAYOUT MODE',
-                style: t.type.caption.copyWith(color: t.mutedText),
-              ),
-              const SizedBox(height: NudgeSpacing.xs),
-              Wrap(
-                spacing: NudgeSpacing.sm,
-                children: ['TEXT', 'ICON', 'HYBRID'].map((mode) {
-                  final isSelected = state.settings.layoutMode == mode;
-                  return ChoiceChip(
-                    label: Text(mode),
-                    selected: isSelected,
-                    selectedColor: t.accent,
-                    backgroundColor: t.background,
-                    labelStyle: t.type.label.copyWith(
-                      color: isSelected ? Colors.white : t.primaryText,
-                    ),
-                    onSelected: (selected) {
-                      if (selected) {
-                        notifier.updateLayoutMode(mode);
-                        Navigator.pop(context);
-                      }
-                    },
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: NudgeSpacing.lg),
-              Text(
-                'THEME PRESET',
-                style: t.type.caption.copyWith(color: t.mutedText),
-              ),
-              const SizedBox(height: NudgeSpacing.xs),
-              Wrap(
-                spacing: NudgeSpacing.xs,
-                runSpacing: NudgeSpacing.xs,
-                children: NudgeThemePreset.values.map((preset) {
-                  final isSelected = state.settings.themePresetName == preset.name;
-                  return ChoiceChip(
-                    label: Text(preset.label),
-                    selected: isSelected,
-                    selectedColor: t.accent,
-                    backgroundColor: t.background,
-                    labelStyle: t.type.label.copyWith(
-                      color: isSelected ? Colors.white : t.primaryText,
-                    ),
-                    onSelected: (selected) {
-                      if (selected) {
-                        notifier.updateThemePreset(preset.name);
-                        ref.read(nudgeThemeProvider.notifier).setPreset(preset);
-                        Navigator.pop(context);
-                      }
-                    },
-                  );
-                }).toList(),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(
-                'Close',
-                style: t.type.label.copyWith(color: t.accent),
-              ),
-            ),
-          ],
         );
       },
     );

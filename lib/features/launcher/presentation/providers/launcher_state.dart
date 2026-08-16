@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
 
 import '../../../../core/database/database_service.dart';
-import '../../../apps/domain/models/installed_app.dart';
 import '../../../customization/domain/models/app_settings.dart';
 
 /// State class for the launcher.
@@ -222,33 +221,6 @@ final class LauncherNotifier extends Notifier<LauncherState> {
     await _syncLocalState();
   }
 
-  /// Updates AppSettings layout mode.
-  Future<void> updateLayoutMode(String mode) async {
-    final db = ref.read(databaseServiceProvider);
-    final isar = db.isar;
-
-    await isar.writeTxn(() async {
-      final s = state.settings;
-      s.layoutMode = mode;
-      await isar.appSettings.put(s);
-    });
-
-    state = state.copyWith(settings: state.settings);
-  }
-
-  /// Updates AppSettings theme preset.
-  Future<void> updateThemePreset(String presetName) async {
-    final db = ref.read(databaseServiceProvider);
-    final isar = db.isar;
-
-    await isar.writeTxn(() async {
-      final s = state.settings;
-      s.themePresetName = presetName;
-      await isar.appSettings.put(s);
-    });
-
-    state = state.copyWith(settings: state.settings);
-  }
 
   Future<void> _syncLocalState() async {
     final db = ref.read(databaseServiceProvider);

@@ -6,13 +6,11 @@ import 'nudge_motion.dart';
 import 'nudge_semantic_colors.dart';
 import 'nudge_theme.dart';
 import 'nudge_typography.dart';
+import 'nudge_layout.dart';
+import 'nudge_clock.dart';
+import '../../features/customization/domain/models/theme_config.dart';
 
-/// Nudge Design System — Theme Presets
-///
-/// Each preset is a named combination of design tokens.
-/// All presets share the same [NudgeThemeData] structure;
-/// only token values differ. No separate widget implementations exist per theme.
-
+/// Supported built-in theme presets.
 enum NudgeThemePreset {
   pure,
   purple,
@@ -23,7 +21,6 @@ enum NudgeThemePreset {
   nothing,
   developer;
 
-  /// Human-readable display name.
   String get label => switch (this) {
         NudgeThemePreset.pure => 'Pure',
         NudgeThemePreset.purple => 'Purple',
@@ -35,92 +32,184 @@ enum NudgeThemePreset {
         NudgeThemePreset.developer => 'Developer',
       };
 
-  /// Brief description shown in settings.
   String get description => switch (this) {
-        NudgeThemePreset.pure =>
-          'Clean neutral defaults. Follows system light/dark.',
+        NudgeThemePreset.pure => 'Clean neutral defaults. Follows system light/dark.',
         NudgeThemePreset.purple => 'Accent-forward. Deep purple surface.',
-        NudgeThemePreset.oled =>
-          'True black. Maximum contrast for AMOLED displays.',
+        NudgeThemePreset.oled => 'True black. Maximum contrast for AMOLED displays.',
         NudgeThemePreset.terminal => 'Hacker green on near-black. Monospace.',
         NudgeThemePreset.paper => 'Warm off-white. Ink-on-paper feel.',
         NudgeThemePreset.linear => 'Precision dark. Inspired by Linear.',
         NudgeThemePreset.nothing => 'Monochrome minimal. Nothing OS inspired.',
-        NudgeThemePreset.developer =>
-          'Terminal palette with developer tooling visibility.',
+        NudgeThemePreset.developer => 'Monospace terminal layout with developer tooling colors.',
       };
 
-  /// Whether this preset defaults to a dark-mode color scheme.
-  bool get isDark => switch (this) {
-        NudgeThemePreset.pure => false,
-        NudgeThemePreset.purple => true,
-        NudgeThemePreset.oled => true,
-        NudgeThemePreset.terminal => true,
-        NudgeThemePreset.paper => false,
-        NudgeThemePreset.linear => true,
-        NudgeThemePreset.nothing => true,
-        NudgeThemePreset.developer => true,
-      };
+  /// Builds a full [ThemeConfig] object for this preset.
+  ThemeConfig toConfig() {
+    final cfg = ThemeConfig()
+      ..name = label
+      ..isCustom = false;
 
-  // ---------------------------------------------------------------------------
-  // Factory — build NudgeThemeData
-  // ---------------------------------------------------------------------------
+    switch (this) {
+      case NudgeThemePreset.pure:
+        cfg.colorPreset = 'light';
+        cfg.fontFamily = 'Inter';
+        cfg.fontWeight = 400;
+        cfg.motionMode = 'calm';
+        break;
 
-  /// Builds the [NudgeThemeData] for this preset.
-  ///
-  /// [systemBrightness] is used only by [NudgeThemePreset.pure] which tracks
-  /// the OS light/dark setting.
-  NudgeThemeData build({Brightness systemBrightness = Brightness.light}) {
-    final colors = _resolveColors(systemBrightness);
-    final motion = _resolveMotion();
-    final type = _resolveTypeScale();
+      case NudgeThemePreset.purple:
+        cfg.colorPreset = 'custom';
+        cfg.backgroundColorValue = 0xFF0F0B1E;
+        cfg.primaryTextColorValue = 0xFFF5F5FF;
+        cfg.secondaryTextColorValue = 0xFFB8AEFF;
+        cfg.accentColorValue = 0xFF8B6CFF;
+        cfg.fontFamily = 'Inter';
+        cfg.fontWeight = 500;
+        cfg.motionMode = 'calm';
+        break;
 
-    return NudgeThemeData(
-      colors: colors,
-      semanticColors: const NudgeSemanticColors(),
-      type: type,
-      motion: motion,
-      icons: const MaterialIconResolver(),
-      themeMode: _resolveThemeMode(systemBrightness),
-      presetLabel: label,
-    );
+      case NudgeThemePreset.oled:
+        cfg.colorPreset = 'oled';
+        cfg.fontFamily = 'Inter';
+        cfg.fontWeight = 400;
+        cfg.motionMode = 'calm';
+        break;
+
+      case NudgeThemePreset.terminal:
+        cfg.colorPreset = 'custom';
+        cfg.backgroundColorValue = 0xFF0D1117;
+        cfg.primaryTextColorValue = 0xFFE6EDF3;
+        cfg.secondaryTextColorValue = 0xFF8B949E;
+        cfg.accentColorValue = 0xFF39FF88;
+        cfg.fontFamily = 'JetBrainsMono';
+        cfg.fontWeight = 400;
+        cfg.motionMode = 'none';
+        break;
+
+      case NudgeThemePreset.paper:
+        cfg.colorPreset = 'custom';
+        cfg.backgroundColorValue = 0xFFFAFAF8;
+        cfg.primaryTextColorValue = 0xFF222222;
+        cfg.secondaryTextColorValue = 0xFF6B6B63;
+        cfg.accentColorValue = 0xFF7C5CFC;
+        cfg.fontFamily = 'IBMPlexSans';
+        cfg.fontWeight = 400;
+        cfg.motionMode = 'calm';
+        break;
+
+      case NudgeThemePreset.linear:
+        cfg.colorPreset = 'custom';
+        cfg.backgroundColorValue = 0xFF0F0F11;
+        cfg.primaryTextColorValue = 0xFFF2F2F5;
+        cfg.secondaryTextColorValue = 0xFF9898A6;
+        cfg.accentColorValue = 0xFF7C5CFC;
+        cfg.fontFamily = 'Inter';
+        cfg.fontWeight = 400;
+        cfg.motionMode = 'smooth';
+        break;
+
+      case NudgeThemePreset.nothing:
+        cfg.colorPreset = 'custom';
+        cfg.backgroundColorValue = 0xFF0A0A0A;
+        cfg.primaryTextColorValue = 0xFFF0F0F0;
+        cfg.secondaryTextColorValue = 0xFF888888;
+        cfg.accentColorValue = 0xFFFFFFFF;
+        cfg.fontFamily = 'Inter';
+        cfg.fontWeight = 400;
+        cfg.motionMode = 'calm';
+        break;
+
+      case NudgeThemePreset.developer:
+        cfg.colorPreset = 'custom';
+        cfg.backgroundColorValue = 0xFF0D1117;
+        cfg.primaryTextColorValue = 0xFFE6EDF3;
+        cfg.secondaryTextColorValue = 0xFF8B949E;
+        cfg.accentColorValue = 0xFF39FF88;
+        cfg.fontFamily = 'IBMPlexMono';
+        cfg.fontWeight = 400;
+        cfg.motionMode = 'none';
+        break;
+    }
+
+    return cfg;
   }
 
-  NudgeColorScheme _resolveColors(Brightness systemBrightness) =>
-      switch (this) {
-        NudgeThemePreset.pure => systemBrightness == Brightness.dark
-            ? NudgeColorScheme.dark
-            : NudgeColorScheme.light,
-        NudgeThemePreset.purple => NudgeColorScheme.purple,
-        NudgeThemePreset.oled => NudgeColorScheme.oled,
-        NudgeThemePreset.terminal => NudgeColorScheme.terminal,
-        NudgeThemePreset.paper => NudgeColorScheme.paper,
-        NudgeThemePreset.linear => NudgeColorScheme.linear,
-        NudgeThemePreset.nothing => NudgeColorScheme.nothing,
-        NudgeThemePreset.developer => NudgeColorScheme.developer,
-      };
+  /// Builds a [NudgeThemeData] derived directly from this preset configuration.
+  /// (Kept for backwards compatibility and test suites)
+  NudgeThemeData build({Brightness systemBrightness = Brightness.light}) {
+    final config = toConfig();
+    if (this == NudgeThemePreset.pure && systemBrightness == Brightness.dark) {
+      config.colorPreset = 'dark';
+    }
+    return buildThemeDataFromConfig(config, systemBrightness);
+  }
+}
 
-  NudgeMotion _resolveMotion() => switch (this) {
-        NudgeThemePreset.terminal => NudgeMotion.none,
-        NudgeThemePreset.developer => NudgeMotion.none,
-        NudgeThemePreset.linear => NudgeMotion.smooth,
-        _ => NudgeMotion.calm,
-      };
+/// Helper method to construct NudgeThemeData from a ThemeConfig object.
+NudgeThemeData buildThemeDataFromConfig(ThemeConfig config, Brightness systemBrightness) {
+  // 1. Resolve colors
+  NudgeColorScheme colors;
+  if (config.colorPreset == 'light') {
+    colors = NudgeColorScheme.light;
+  } else if (config.colorPreset == 'dark') {
+    colors = NudgeColorScheme.dark;
+  } else if (config.colorPreset == 'oled') {
+    colors = NudgeColorScheme.oled;
+  } else {
+    // Custom colors (or dynamically overrides)
+    colors = NudgeColorScheme.fromConfig(config);
+  }
 
-  NudgeTypeScale _resolveTypeScale() => switch (this) {
-        NudgeThemePreset.terminal =>
-          NudgeTypeScale.defaults(fontFamily: 'monospace'),
-        NudgeThemePreset.developer =>
-          NudgeTypeScale.defaults(fontFamily: 'monospace'),
-        _ => NudgeTypeScale.defaults(),
-      };
+  // 2. Resolve typography
+  final type = NudgeTypeScale.fromConfig(config);
 
-  NudgeThemeMode _resolveThemeMode(Brightness systemBrightness) =>
-      switch (this) {
-        NudgeThemePreset.pure => systemBrightness == Brightness.dark
-            ? NudgeThemeMode.dark
-            : NudgeThemeMode.light,
-        NudgeThemePreset.oled => NudgeThemeMode.oled,
-        _ => isDark ? NudgeThemeMode.dark : NudgeThemeMode.light,
-      };
+  // 3. Resolve motion
+  // Convert config.motionMode to NudgeMotionMode
+  NudgeMotionMode motionMode = NudgeMotionMode.calm;
+  if (config.reducedMotion || config.motionMode == 'none') {
+    motionMode = NudgeMotionMode.none;
+  } else if (config.motionMode == 'smooth') {
+    motionMode = NudgeMotionMode.smooth;
+  }
+
+  NudgeMotion baseMotion = NudgeMotion.forMode(motionMode);
+  // Apply speed scale
+  final motion = NudgeMotion(
+    mode: motionMode,
+    fast: baseMotion.fast * config.animationSpeedScale,
+    normal: baseMotion.normal * config.animationSpeedScale,
+    slow: baseMotion.slow * config.animationSpeedScale,
+    curve: baseMotion.curve,
+    curveDecelerate: baseMotion.curveDecelerate,
+    curveAccelerate: baseMotion.curveAccelerate,
+  );
+
+  // 4. Resolve icons
+  final iconSettings = NudgeIconSettings.fromConfig(config);
+  final icons = NudgeIconResolver.forSettings(iconSettings);
+
+  // 5. Layout and Clock
+  final layoutSettings = NudgeLayoutSettings.fromConfig(config);
+  final clockSettings = NudgeClockSettings.fromConfig(config);
+
+  // Theme mode mapping
+  NudgeThemeMode tMode = NudgeThemeMode.dark;
+  if (config.colorPreset == 'light') {
+    tMode = NudgeThemeMode.light;
+  } else if (config.colorPreset == 'oled') {
+    tMode = NudgeThemeMode.oled;
+  }
+
+  return NudgeThemeData(
+    colors: colors,
+    semanticColors: const NudgeSemanticColors(),
+    type: type,
+    motion: motion,
+    icons: icons,
+    iconSettings: iconSettings,
+    layoutSettings: layoutSettings,
+    clockSettings: clockSettings,
+    themeMode: tMode,
+    presetLabel: config.name,
+  );
 }

@@ -17,25 +17,10 @@ const AppSettingsSchema = CollectionSchema(
   name: r'AppSettings',
   id: -5633561779022347008,
   properties: {
-    r'layoutMode': PropertySchema(
+    r'activeThemeConfigId': PropertySchema(
       id: 0,
-      name: r'layoutMode',
-      type: IsarType.string,
-    ),
-    r'showDate': PropertySchema(
-      id: 1,
-      name: r'showDate',
-      type: IsarType.bool,
-    ),
-    r'showTime': PropertySchema(
-      id: 2,
-      name: r'showTime',
-      type: IsarType.bool,
-    ),
-    r'themePresetName': PropertySchema(
-      id: 3,
-      name: r'themePresetName',
-      type: IsarType.string,
+      name: r'activeThemeConfigId',
+      type: IsarType.long,
     )
   },
   estimateSize: _appSettingsEstimateSize,
@@ -58,8 +43,6 @@ int _appSettingsEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
-  bytesCount += 3 + object.layoutMode.length * 3;
-  bytesCount += 3 + object.themePresetName.length * 3;
   return bytesCount;
 }
 
@@ -69,10 +52,7 @@ void _appSettingsSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeString(offsets[0], object.layoutMode);
-  writer.writeBool(offsets[1], object.showDate);
-  writer.writeBool(offsets[2], object.showTime);
-  writer.writeString(offsets[3], object.themePresetName);
+  writer.writeLong(offsets[0], object.activeThemeConfigId);
 }
 
 AppSettings _appSettingsDeserialize(
@@ -82,11 +62,8 @@ AppSettings _appSettingsDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = AppSettings();
+  object.activeThemeConfigId = reader.readLongOrNull(offsets[0]);
   object.id = id;
-  object.layoutMode = reader.readString(offsets[0]);
-  object.showDate = reader.readBool(offsets[1]);
-  object.showTime = reader.readBool(offsets[2]);
-  object.themePresetName = reader.readString(offsets[3]);
   return object;
 }
 
@@ -98,13 +75,7 @@ P _appSettingsDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readString(offset)) as P;
-    case 1:
-      return (reader.readBool(offset)) as P;
-    case 2:
-      return (reader.readBool(offset)) as P;
-    case 3:
-      return (reader.readString(offset)) as P;
+      return (reader.readLongOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -203,6 +174,80 @@ extension AppSettingsQueryWhere
 
 extension AppSettingsQueryFilter
     on QueryBuilder<AppSettings, AppSettings, QFilterCondition> {
+  QueryBuilder<AppSettings, AppSettings, QAfterFilterCondition>
+      activeThemeConfigIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'activeThemeConfigId',
+      ));
+    });
+  }
+
+  QueryBuilder<AppSettings, AppSettings, QAfterFilterCondition>
+      activeThemeConfigIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'activeThemeConfigId',
+      ));
+    });
+  }
+
+  QueryBuilder<AppSettings, AppSettings, QAfterFilterCondition>
+      activeThemeConfigIdEqualTo(int? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'activeThemeConfigId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<AppSettings, AppSettings, QAfterFilterCondition>
+      activeThemeConfigIdGreaterThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'activeThemeConfigId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<AppSettings, AppSettings, QAfterFilterCondition>
+      activeThemeConfigIdLessThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'activeThemeConfigId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<AppSettings, AppSettings, QAfterFilterCondition>
+      activeThemeConfigIdBetween(
+    int? lower,
+    int? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'activeThemeConfigId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
   QueryBuilder<AppSettings, AppSettings, QAfterFilterCondition> idEqualTo(
       Id value) {
     return QueryBuilder.apply(this, (query) {
@@ -255,298 +300,6 @@ extension AppSettingsQueryFilter
       ));
     });
   }
-
-  QueryBuilder<AppSettings, AppSettings, QAfterFilterCondition>
-      layoutModeEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'layoutMode',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<AppSettings, AppSettings, QAfterFilterCondition>
-      layoutModeGreaterThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'layoutMode',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<AppSettings, AppSettings, QAfterFilterCondition>
-      layoutModeLessThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'layoutMode',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<AppSettings, AppSettings, QAfterFilterCondition>
-      layoutModeBetween(
-    String lower,
-    String upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'layoutMode',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<AppSettings, AppSettings, QAfterFilterCondition>
-      layoutModeStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'layoutMode',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<AppSettings, AppSettings, QAfterFilterCondition>
-      layoutModeEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'layoutMode',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<AppSettings, AppSettings, QAfterFilterCondition>
-      layoutModeContains(String value, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'layoutMode',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<AppSettings, AppSettings, QAfterFilterCondition>
-      layoutModeMatches(String pattern, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'layoutMode',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<AppSettings, AppSettings, QAfterFilterCondition>
-      layoutModeIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'layoutMode',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<AppSettings, AppSettings, QAfterFilterCondition>
-      layoutModeIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'layoutMode',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<AppSettings, AppSettings, QAfterFilterCondition> showDateEqualTo(
-      bool value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'showDate',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<AppSettings, AppSettings, QAfterFilterCondition> showTimeEqualTo(
-      bool value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'showTime',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<AppSettings, AppSettings, QAfterFilterCondition>
-      themePresetNameEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'themePresetName',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<AppSettings, AppSettings, QAfterFilterCondition>
-      themePresetNameGreaterThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'themePresetName',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<AppSettings, AppSettings, QAfterFilterCondition>
-      themePresetNameLessThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'themePresetName',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<AppSettings, AppSettings, QAfterFilterCondition>
-      themePresetNameBetween(
-    String lower,
-    String upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'themePresetName',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<AppSettings, AppSettings, QAfterFilterCondition>
-      themePresetNameStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'themePresetName',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<AppSettings, AppSettings, QAfterFilterCondition>
-      themePresetNameEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'themePresetName',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<AppSettings, AppSettings, QAfterFilterCondition>
-      themePresetNameContains(String value, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'themePresetName',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<AppSettings, AppSettings, QAfterFilterCondition>
-      themePresetNameMatches(String pattern, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'themePresetName',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<AppSettings, AppSettings, QAfterFilterCondition>
-      themePresetNameIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'themePresetName',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<AppSettings, AppSettings, QAfterFilterCondition>
-      themePresetNameIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'themePresetName',
-        value: '',
-      ));
-    });
-  }
 }
 
 extension AppSettingsQueryObject
@@ -557,58 +310,37 @@ extension AppSettingsQueryLinks
 
 extension AppSettingsQuerySortBy
     on QueryBuilder<AppSettings, AppSettings, QSortBy> {
-  QueryBuilder<AppSettings, AppSettings, QAfterSortBy> sortByLayoutMode() {
+  QueryBuilder<AppSettings, AppSettings, QAfterSortBy>
+      sortByActiveThemeConfigId() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'layoutMode', Sort.asc);
-    });
-  }
-
-  QueryBuilder<AppSettings, AppSettings, QAfterSortBy> sortByLayoutModeDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'layoutMode', Sort.desc);
-    });
-  }
-
-  QueryBuilder<AppSettings, AppSettings, QAfterSortBy> sortByShowDate() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'showDate', Sort.asc);
-    });
-  }
-
-  QueryBuilder<AppSettings, AppSettings, QAfterSortBy> sortByShowDateDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'showDate', Sort.desc);
-    });
-  }
-
-  QueryBuilder<AppSettings, AppSettings, QAfterSortBy> sortByShowTime() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'showTime', Sort.asc);
-    });
-  }
-
-  QueryBuilder<AppSettings, AppSettings, QAfterSortBy> sortByShowTimeDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'showTime', Sort.desc);
-    });
-  }
-
-  QueryBuilder<AppSettings, AppSettings, QAfterSortBy> sortByThemePresetName() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'themePresetName', Sort.asc);
+      return query.addSortBy(r'activeThemeConfigId', Sort.asc);
     });
   }
 
   QueryBuilder<AppSettings, AppSettings, QAfterSortBy>
-      sortByThemePresetNameDesc() {
+      sortByActiveThemeConfigIdDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'themePresetName', Sort.desc);
+      return query.addSortBy(r'activeThemeConfigId', Sort.desc);
     });
   }
 }
 
 extension AppSettingsQuerySortThenBy
     on QueryBuilder<AppSettings, AppSettings, QSortThenBy> {
+  QueryBuilder<AppSettings, AppSettings, QAfterSortBy>
+      thenByActiveThemeConfigId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'activeThemeConfigId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<AppSettings, AppSettings, QAfterSortBy>
+      thenByActiveThemeConfigIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'activeThemeConfigId', Sort.desc);
+    });
+  }
+
   QueryBuilder<AppSettings, AppSettings, QAfterSortBy> thenById() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.asc);
@@ -620,83 +352,14 @@ extension AppSettingsQuerySortThenBy
       return query.addSortBy(r'id', Sort.desc);
     });
   }
-
-  QueryBuilder<AppSettings, AppSettings, QAfterSortBy> thenByLayoutMode() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'layoutMode', Sort.asc);
-    });
-  }
-
-  QueryBuilder<AppSettings, AppSettings, QAfterSortBy> thenByLayoutModeDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'layoutMode', Sort.desc);
-    });
-  }
-
-  QueryBuilder<AppSettings, AppSettings, QAfterSortBy> thenByShowDate() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'showDate', Sort.asc);
-    });
-  }
-
-  QueryBuilder<AppSettings, AppSettings, QAfterSortBy> thenByShowDateDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'showDate', Sort.desc);
-    });
-  }
-
-  QueryBuilder<AppSettings, AppSettings, QAfterSortBy> thenByShowTime() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'showTime', Sort.asc);
-    });
-  }
-
-  QueryBuilder<AppSettings, AppSettings, QAfterSortBy> thenByShowTimeDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'showTime', Sort.desc);
-    });
-  }
-
-  QueryBuilder<AppSettings, AppSettings, QAfterSortBy> thenByThemePresetName() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'themePresetName', Sort.asc);
-    });
-  }
-
-  QueryBuilder<AppSettings, AppSettings, QAfterSortBy>
-      thenByThemePresetNameDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'themePresetName', Sort.desc);
-    });
-  }
 }
 
 extension AppSettingsQueryWhereDistinct
     on QueryBuilder<AppSettings, AppSettings, QDistinct> {
-  QueryBuilder<AppSettings, AppSettings, QDistinct> distinctByLayoutMode(
-      {bool caseSensitive = true}) {
+  QueryBuilder<AppSettings, AppSettings, QDistinct>
+      distinctByActiveThemeConfigId() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'layoutMode', caseSensitive: caseSensitive);
-    });
-  }
-
-  QueryBuilder<AppSettings, AppSettings, QDistinct> distinctByShowDate() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'showDate');
-    });
-  }
-
-  QueryBuilder<AppSettings, AppSettings, QDistinct> distinctByShowTime() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'showTime');
-    });
-  }
-
-  QueryBuilder<AppSettings, AppSettings, QDistinct> distinctByThemePresetName(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'themePresetName',
-          caseSensitive: caseSensitive);
+      return query.addDistinctBy(r'activeThemeConfigId');
     });
   }
 }
@@ -709,28 +372,10 @@ extension AppSettingsQueryProperty
     });
   }
 
-  QueryBuilder<AppSettings, String, QQueryOperations> layoutModeProperty() {
+  QueryBuilder<AppSettings, int?, QQueryOperations>
+      activeThemeConfigIdProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'layoutMode');
-    });
-  }
-
-  QueryBuilder<AppSettings, bool, QQueryOperations> showDateProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'showDate');
-    });
-  }
-
-  QueryBuilder<AppSettings, bool, QQueryOperations> showTimeProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'showTime');
-    });
-  }
-
-  QueryBuilder<AppSettings, String, QQueryOperations>
-      themePresetNameProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'themePresetName');
+      return query.addPropertyName(r'activeThemeConfigId');
     });
   }
 }

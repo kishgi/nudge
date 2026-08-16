@@ -867,7 +867,8 @@ class _SelectionStatesState extends State<_SelectionStates> {
                       ],
                     ),
                   ),
-                  ?trailingIcon,
+                  // ignore: use_null_aware_elements
+                  if (trailingIcon != null) trailingIcon,
                 ],
               ),
             ),

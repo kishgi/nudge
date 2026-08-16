@@ -2,13 +2,13 @@ import 'package:isar/isar.dart';
 
 part 'app_settings.g.dart';
 
+/// Global launcher settings (layout mode, active theme reference).
+/// Appearance details are stored in [ThemeConfig].
 @collection
 class AppSettings {
   Id id = Isar.autoIncrement;
 
-  String themePresetName = 'pure';
-  String layoutMode = 'TEXT'; // TEXT, ICON, HYBRID
-  
-  bool showDate = true;
-  bool showTime = true;
+  /// References the Id of the active [ThemeConfig] row.
+  /// Null means "use the default Pure preset config".
+  int? activeThemeConfigId;
 }
