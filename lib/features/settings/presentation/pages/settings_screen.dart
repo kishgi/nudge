@@ -754,7 +754,6 @@ class IconSettingsPage extends ConsumerWidget {
             title: 'Icon Pack',
             child: Column(
               children: NudgeIconPack.values.map((p) {
-                final isSelected = p.name == config.iconPack;
                 return RadioListTile<String>(
                   title: Text(p.label, style: t.type.body.copyWith(color: t.primaryText)),
                   value: p.name,
@@ -1029,7 +1028,6 @@ class _ColorSettingsPageState extends ConsumerState<ColorSettingsPage> {
             title: 'Preset Mode',
             child: Column(
               children: ['light', 'dark', 'oled', 'custom'].map((mode) {
-                final isSelected = config.colorPreset == mode;
                 return RadioListTile<String>(
                   title: Text(mode.toUpperCase(), style: t.type.body.copyWith(color: t.primaryText)),
                   value: mode,
@@ -1835,7 +1833,6 @@ class _ThemesPageState extends ConsumerState<ThemesPage> {
     final notifier = ref.read(nudgeThemeProvider.notifier);
     final activeConfig = ref.watch(activeThemeConfigProvider);
 
-    final presets = _themes.where((th) => !th.isCustom).toList();
     final customs = _themes.where((th) => th.isCustom).toList();
 
     return Scaffold(

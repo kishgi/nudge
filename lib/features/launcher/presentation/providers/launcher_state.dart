@@ -148,11 +148,10 @@ final class LauncherNotifier extends Notifier<LauncherState> {
         allApps: updatedApps,
         appIcons: newIcons,
       );
-    } on PlatformException catch (e) {
-      // Platform Exception is expected when running in tests/mocks, catch it safely.
-      debugPrint('Launcher Platform Exception: $e');
-    } catch (e) {
-      debugPrint('Refresh Apps Error: $e');
+    } on PlatformException catch (_) {
+      // Platform Exception is expected when running in tests/mocks without platform channels.
+    } catch (_) {
+      // Gracefully ignore refresh errors in offline production
     }
   }
 
@@ -161,8 +160,7 @@ final class LauncherNotifier extends Notifier<LauncherState> {
     try {
       await _channel.invokeMethod('launchApp', {'packageName': packageName});
       return true;
-    } catch (e) {
-      debugPrint('Error launching app $packageName: $e');
+    } catch (_) {
       return false;
     }
   }

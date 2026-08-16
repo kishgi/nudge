@@ -265,10 +265,15 @@ class MainActivity : FlutterActivity() {
                     map["totalTimeInForeground"] = timeInForeground
                     map["lastTimeUsed"] = stat.lastTimeUsed
 
-                    val launchCount = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
-                        stat.appLaunchCount
-                    } else {
-                        0
+                    val launchCount = try {
+                        val field = stat.javaClass.getDeclaredField("mLaunchCount")
+                        field.isAccessible = true
+                        field.getInt(stat)
+                    } catch (_: Exception) {
+                        try {
+                            val method = stat.javaClass.getMethod("getAppLaunchCount")
+                            (method.invoke(stat) as? Int) ?: 0
+                        } catch (_: Exception) { 0 }
                     }
                     map["launchCount"] = launchCount
                     result.add(map)

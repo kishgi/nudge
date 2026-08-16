@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/nudge_theme.dart';
-import '../../../../core/theme/nudge_spacing.dart';
 import '../../domain/models/home_widget_config.dart';
 import '../../../focus/presentation/providers/focus_provider.dart';
 
