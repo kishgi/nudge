@@ -6,6 +6,8 @@ import '../../../../core/theme/nudge_spacing.dart';
 import '../../../launcher/domain/models/home_widget_config.dart';
 import '../../../launcher/presentation/providers/launcher_state.dart';
 
+import '../../../../core/theme/nudge_icons.dart';
+
 /// Drag-and-drop reorderable settings page for home widgets.
 /// Controls visibility and display order of the widget strip.
 class WidgetSettingsPage extends ConsumerStatefulWidget {
@@ -39,7 +41,7 @@ class _WidgetSettingsPageState extends ConsumerState<WidgetSettingsPage> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: t.primaryText),
+          icon: Icon(t.icons.resolve(NudgeIconToken.arrowBack), color: t.primaryText),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text('Home Widgets',

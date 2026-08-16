@@ -165,17 +165,16 @@ final class LauncherNotifier extends Notifier<LauncherState> {
     }
   }
 
-  /// Toggles favorite status of [packageName].
-  Future<void> toggleFavorite(String packageName) async {
+  /// Sets whether an app is selected for the Home Screen.
+  Future<void> setHomeAppSelected(String packageName, bool selected) async {
     final db = ref.read(databaseServiceProvider);
     final isar = db.isar;
 
     final app = await isar.installedApps.where().packageNameEqualTo(packageName).findFirst();
-    if (app != null) {
+    if (app != null && app.isFavorite != selected) {
       await isar.writeTxn(() async {
-        app.isFavorite = !app.isFavorite;
-        // If favorited, put it at the end of the favorite positions
-        if (app.isFavorite) {
+        app.isFavorite = selected;
+        if (selected) {
           final maxPos = await isar.installedApps
               .where()
               .filter()
@@ -187,6 +186,22 @@ final class LauncherNotifier extends Notifier<LauncherState> {
         await isar.installedApps.put(app);
       });
       await _syncLocalState();
+    }
+  }
+
+  /// Removes an app from the Home Screen selection.
+  Future<void> removeHomeApp(String packageName) async {
+    await setHomeAppSelected(packageName, false);
+  }
+
+  /// Toggles favorite/home status of [packageName].
+  Future<void> toggleFavorite(String packageName) async {
+    final db = ref.read(databaseServiceProvider);
+    final isar = db.isar;
+
+    final app = await isar.installedApps.where().packageNameEqualTo(packageName).findFirst();
+    if (app != null) {
+      await setHomeAppSelected(packageName, !app.isFavorite);
     }
   }
 

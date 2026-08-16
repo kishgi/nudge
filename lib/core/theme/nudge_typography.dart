@@ -13,8 +13,12 @@ enum NudgeFontFamily {
   system;
 
   static NudgeFontFamily parse(String value) {
+    final valLower = value.toLowerCase();
     return NudgeFontFamily.values.firstWhere(
-      (e) => e.id.toLowerCase() == value.toLowerCase() || e.name == value.toLowerCase(),
+      (e) =>
+          e.id.toLowerCase() == valLower ||
+          e.name.toLowerCase() == valLower ||
+          (e.fontFamilyName != null && e.fontFamilyName!.toLowerCase() == valLower),
       orElse: () => NudgeFontFamily.system, // unknown → system passthrough
     );
   }
@@ -255,7 +259,9 @@ class NudgeTypeScale {
   /// Builds a type scale dynamically based on the [ThemeConfig].
   factory NudgeTypeScale.fromConfig(ThemeConfig config) {
     final family = NudgeFontFamily.parse(config.fontFamily);
-    final fontName = family.fontFamilyName;
+    final fontName = family == NudgeFontFamily.system
+        ? (config.fontFamily.toLowerCase() == 'system' ? null : config.fontFamily)
+        : family.fontFamilyName;
 
     // Nearest supported weight
     final baseWeight = family.getNearestWeight(config.fontWeight);

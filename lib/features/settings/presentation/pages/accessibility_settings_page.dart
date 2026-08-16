@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/nudge_theme.dart';
+import '../../../../core/theme/nudge_icons.dart';
 import '../../../../core/theme/nudge_spacing.dart';
 import '../../../../core/theme/theme_provider.dart';
 
@@ -24,7 +25,7 @@ class AccessibilitySettingsPage extends ConsumerWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: t.primaryText),
+          icon: Icon(t.icons.resolve(NudgeIconToken.arrowBack), color: t.primaryText),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text('Accessibility', style: t.type.headline.copyWith(color: t.primaryText)),
@@ -41,14 +42,13 @@ class AccessibilitySettingsPage extends ConsumerWidget {
           // High Contrast Mode
           _buildToggleCard(
             context,
-            icon: Icons.contrast,
+            iconToken: NudgeIconToken.sun,
             title: 'High Contrast Mode',
             subtitle: 'Enforces WCAG AAA black/white background and high-contrast text colors.',
             value: config.highContrast,
             onChanged: (val) {
               HapticFeedback.selectionClick();
-              final updated = themeState.config..highContrast = val;
-              themeNotifier.applyConfig(updated);
+              themeNotifier.updateField((cfg) => cfg.highContrast = val);
             },
           ),
           const SizedBox(height: NudgeSpacing.md),
@@ -56,14 +56,13 @@ class AccessibilitySettingsPage extends ConsumerWidget {
           // Reduced Motion
           _buildToggleCard(
             context,
-            icon: Icons.motion_photos_off,
+            iconToken: NudgeIconToken.device,
             title: 'Reduced Motion',
             subtitle: 'Disables all transition animations and screen motion effects.',
             value: config.reducedMotion,
             onChanged: (val) {
               HapticFeedback.selectionClick();
-              final updated = themeState.config..reducedMotion = val;
-              themeNotifier.applyConfig(updated);
+              themeNotifier.updateField((cfg) => cfg.reducedMotion = val);
             },
           ),
           const SizedBox(height: NudgeSpacing.md),
@@ -71,14 +70,13 @@ class AccessibilitySettingsPage extends ConsumerWidget {
           // Haptic Feedback
           _buildToggleCard(
             context,
-            icon: Icons.vibration,
+            iconToken: NudgeIconToken.notification,
             title: 'Haptic Feedback',
             subtitle: 'Vibrates lightly when performing gestures, taps, and drag actions.',
             value: config.hapticFeedback,
             onChanged: (val) {
               HapticFeedback.selectionClick();
-              final updated = themeState.config..hapticFeedback = val;
-              themeNotifier.applyConfig(updated);
+              themeNotifier.updateField((cfg) => cfg.hapticFeedback = val);
             },
           ),
           const SizedBox(height: NudgeSpacing.xl),
@@ -89,19 +87,19 @@ class AccessibilitySettingsPage extends ConsumerWidget {
 
           _buildInfoTile(
             context,
-            icon: Icons.format_size,
+            iconToken: NudgeIconToken.font,
             title: 'Android Font Scaling',
             subtitle: 'Nudge automatically inherits Android system font scale settings up to 2.0x without clipping layout bounds.',
           ),
           _buildInfoTile(
             context,
-            icon: Icons.touch_app,
+            iconToken: NudgeIconToken.apps,
             title: 'Adequate Touch Targets',
             subtitle: 'All interactive elements, buttons, and app drawer items maintain a minimum 48x48 dp touch target area.',
           ),
           _buildInfoTile(
             context,
-            icon: Icons.record_voice_over,
+            iconToken: NudgeIconToken.info,
             title: 'Screen Reader Semantics',
             subtitle: 'Includes full Semantics labels, hints, and button tags for TalkBack and screen reader accessibility.',
           ),
@@ -112,7 +110,7 @@ class AccessibilitySettingsPage extends ConsumerWidget {
 
   Widget _buildToggleCard(
     BuildContext context, {
-    required IconData icon,
+    required NudgeIconToken iconToken,
     required String title,
     required String subtitle,
     required bool value,
@@ -128,7 +126,7 @@ class AccessibilitySettingsPage extends ConsumerWidget {
       ),
       child: Row(
         children: [
-          Icon(icon, color: t.accent, size: 24),
+          Icon(t.icons.resolve(iconToken), color: t.accent, size: 24),
           const SizedBox(width: NudgeSpacing.md),
           Expanded(
             child: Column(
@@ -152,7 +150,7 @@ class AccessibilitySettingsPage extends ConsumerWidget {
 
   Widget _buildInfoTile(
     BuildContext context, {
-    required IconData icon,
+    required NudgeIconToken iconToken,
     required String title,
     required String subtitle,
   }) {
@@ -162,7 +160,7 @@ class AccessibilitySettingsPage extends ConsumerWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: t.mutedText, size: 20),
+          Icon(t.icons.resolve(iconToken), color: t.mutedText, size: 20),
           const SizedBox(width: NudgeSpacing.md),
           Expanded(
             child: Column(

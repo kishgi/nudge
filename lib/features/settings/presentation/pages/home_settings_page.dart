@@ -3,8 +3,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/nudge_theme.dart';
+import '../../../../core/theme/nudge_icons.dart';
 import '../../../../core/theme/nudge_spacing.dart';
 import '../../../../core/theme/theme_provider.dart';
+
+import 'settings_screen.dart';
 
 class HomeSettingsPage extends ConsumerWidget {
   const HomeSettingsPage({super.key});
@@ -22,7 +25,7 @@ class HomeSettingsPage extends ConsumerWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: t.primaryText),
+          icon: Icon(t.icons.resolve(NudgeIconToken.arrowBack), color: t.primaryText),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text('Home Settings', style: t.type.headline.copyWith(color: t.primaryText)),
@@ -30,6 +33,8 @@ class HomeSettingsPage extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(NudgeSpacing.lg),
         children: [
+          const NudgePreviewWidget(),
+          const SizedBox(height: NudgeSpacing.lg),
           // Show App Icons
           SwitchListTile(
             title: Text('Show App Icons', style: t.type.body.copyWith(color: t.primaryText)),

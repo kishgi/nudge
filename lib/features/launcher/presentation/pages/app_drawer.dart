@@ -494,11 +494,16 @@ class _AppTile extends ConsumerWidget {
             ),
             Divider(height: 1, color: t.divider),
             ListTile(
-              leading: Icon(t.icons.resolve(NudgeIconToken.favorite),
-                  color: t.primaryText),
+              leading: Icon(
+                t.icons.resolve(app.isFavorite ? NudgeIconToken.delete : NudgeIconToken.add),
+                color: app.isFavorite ? t.semanticColors.error : t.accent,
+              ),
               title: Text(
-                  app.isFavorite ? 'Remove from Favorites' : 'Add to Favorites',
-                  style: t.type.body.copyWith(color: t.primaryText)),
+                app.isFavorite ? 'Remove from Home' : 'Add to Home',
+                style: t.type.body.copyWith(
+                  color: app.isFavorite ? t.semanticColors.error : t.primaryText,
+                ),
+              ),
               onTap: () {
                 notifier.toggleFavorite(app.packageName);
                 Navigator.pop(context);

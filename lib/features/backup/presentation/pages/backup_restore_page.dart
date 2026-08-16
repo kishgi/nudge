@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/database/database_service.dart';
 import '../../../../core/theme/nudge_theme.dart';
+import '../../../../core/theme/nudge_icons.dart';
 import '../../../../core/theme/nudge_spacing.dart';
 import '../../domain/services/backup_service.dart';
 import '../../../launcher/presentation/providers/launcher_state.dart';
@@ -36,19 +37,21 @@ class _BackupRestorePageState extends ConsumerState<BackupRestorePage> {
       await Clipboard.setData(ClipboardData(text: jsonStr));
 
       if (mounted) {
+        final t = context.nudgeTheme;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Backup copied to clipboard! You can save it to a local file.'),
-            backgroundColor: Colors.green,
+          SnackBar(
+            content: const Text('Backup copied to clipboard! You can save it to a local file.'),
+            backgroundColor: t.semanticColors.success,
           ),
         );
       }
     } catch (e) {
       if (mounted) {
+        final t = context.nudgeTheme;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Export failed: ${e.toString()}'),
-            backgroundColor: Colors.red,
+            backgroundColor: t.semanticColors.error,
           ),
         );
       }
@@ -128,7 +131,7 @@ class _BackupRestorePageState extends ConsumerState<BackupRestorePage> {
       if (result.success) {
         await ref.read(launcherProvider.notifier).refreshApps();
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(result.message), backgroundColor: Colors.green),
+          SnackBar(content: Text(result.message), backgroundColor: t.semanticColors.success),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -170,10 +173,11 @@ class _BackupRestorePageState extends ConsumerState<BackupRestorePage> {
     await ref.read(launcherProvider.notifier).refreshApps();
 
     if (mounted) {
+      final t = context.nudgeTheme;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Launcher settings reset to defaults.'),
-          backgroundColor: Colors.orange,
+        SnackBar(
+          content: const Text('Launcher settings reset to defaults.'),
+          backgroundColor: t.semanticColors.warning,
         ),
       );
     }
@@ -189,7 +193,7 @@ class _BackupRestorePageState extends ConsumerState<BackupRestorePage> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: t.primaryText),
+          icon: Icon(t.icons.resolve(NudgeIconToken.arrowBack), color: t.primaryText),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text('Backup & Restore', style: t.type.headline.copyWith(color: t.primaryText)),
@@ -198,17 +202,19 @@ class _BackupRestorePageState extends ConsumerState<BackupRestorePage> {
         padding: const EdgeInsets.all(NudgeSpacing.lg),
         children: [
           Text(
-            'Nudge is 100% offline with zero cloud dependency. Backup your complete configuration to local JSON or restore from text.',
+            'Export or import your complete Nudge layout, themes, focus rules, gestures, and settings as a local JSON payload.',
             style: t.type.body.copyWith(color: t.mutedText),
           ),
-          const SizedBox(height: NudgeSpacing.lg),
+          const SizedBox(height: NudgeSpacing.xl),
 
-          // Action buttons
+          // Actions
           Row(
             children: [
               Expanded(
                 child: ElevatedButton.icon(
-                  icon: const Icon(Icons.download),
+                  icon: _isProcessing
+                      ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                      : Icon(t.icons.resolve(NudgeIconToken.share)),
                   label: const Text('Export JSON'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: t.accent,
@@ -221,8 +227,8 @@ class _BackupRestorePageState extends ConsumerState<BackupRestorePage> {
               const SizedBox(width: NudgeSpacing.md),
               Expanded(
                 child: OutlinedButton.icon(
-                  icon: const Icon(Icons.upload),
-                  label: const Text('Restore JSON'),
+                  icon: Icon(t.icons.resolve(NudgeIconToken.add)),
+                  label: const Text('Import JSON'),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: t.primaryText,
                     side: BorderSide(color: t.divider),
@@ -233,16 +239,14 @@ class _BackupRestorePageState extends ConsumerState<BackupRestorePage> {
               ),
             ],
           ),
-
           const SizedBox(height: NudgeSpacing.xl),
 
-          // JSON input box
           Text('Backup JSON Payload', style: t.type.body.copyWith(color: t.primaryText, fontWeight: FontWeight.bold)),
           const SizedBox(height: NudgeSpacing.xs),
           TextField(
             controller: _jsonController,
             maxLines: 10,
-            style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+            style: t.type.caption.copyWith(fontFamily: 'monospace', color: t.primaryText),
             decoration: InputDecoration(
               hintText: 'Click "Export JSON" to copy backup here, or paste a backup payload to restore...',
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
@@ -260,8 +264,8 @@ class _BackupRestorePageState extends ConsumerState<BackupRestorePage> {
           const SizedBox(height: NudgeSpacing.md),
 
           OutlinedButton.icon(
-            icon: Icon(Icons.restart_alt, color: t.semanticColors.error),
-            label: Text('Reset All Settings to Defaults', style: TextStyle(color: t.semanticColors.error)),
+            icon: Icon(t.icons.resolve(NudgeIconToken.delete), color: t.semanticColors.error),
+            label: Text('Reset All Settings to Defaults', style: t.type.body.copyWith(color: t.semanticColors.error, fontWeight: FontWeight.bold)),
             style: OutlinedButton.styleFrom(
               side: BorderSide(color: t.semanticColors.error),
               padding: const EdgeInsets.symmetric(vertical: 16),

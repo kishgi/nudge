@@ -434,7 +434,7 @@ class NudgePreviewWidget extends ConsumerWidget {
           timeStr,
           textAlign: clockTextAlign,
           style: TextStyle(
-            fontFamily: t.clockSettings.clockFontFamily ?? t.type.fontFamily,
+            fontFamily: NudgeFontFamily.parse(t.clockSettings.clockFontFamily ?? t.type.fontFamily).fontFamilyName ?? t.type.display.fontFamily,
             fontSize: 28 * t.clockSettings.clockSizeScale,
             fontWeight: t.clockSettings.clockFontWeight != null
                 ? FontWeight.values.firstWhere((w) => w.value == t.clockSettings.clockFontWeight)
@@ -523,18 +523,18 @@ class TypographySettingsPage extends ConsumerWidget {
             title: 'Font Family',
             child: Column(
               children: NudgeFontFamily.values.map((f) {
-                final isSelected = f.id == config.fontFamily;
+                final isSelected = f == family || f.id == config.fontFamily || f.fontFamilyName == config.fontFamily;
                 return RadioListTile<String>(
                   title: Text(
                     f.id == 'system' ? 'Android System Font' : f.id,
-                    style: TextStyle(
+                    style: t.type.body.copyWith(
                       fontFamily: f.fontFamilyName,
                       fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                       color: t.primaryText,
                     ),
                   ),
                   value: f.id,
-                  groupValue: config.fontFamily,
+                  groupValue: family.id,
                   activeColor: t.accent,
                   onChanged: (val) {
                     if (val != null) {
@@ -618,7 +618,7 @@ class TypographySettingsPage extends ConsumerWidget {
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 4.0),
                         child: ChoiceChip(
-                          label: Text(align.toUpperCase(), style: TextStyle(color: isSelected ? Colors.white : t.primaryText)),
+                          label: Text(align.toUpperCase(), style: t.type.caption.copyWith(color: isSelected ? t.background : t.primaryText, fontWeight: FontWeight.bold)),
                           selected: isSelected,
                           selectedColor: t.accent,
                           backgroundColor: t.surface,
@@ -642,7 +642,7 @@ class TypographySettingsPage extends ConsumerWidget {
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 4.0),
                         child: ChoiceChip(
-                          label: Text(tc.toUpperCase(), style: TextStyle(color: isSelected ? Colors.white : t.primaryText)),
+                          label: Text(tc.toUpperCase(), style: t.type.caption.copyWith(color: isSelected ? t.background : t.primaryText, fontWeight: FontWeight.bold)),
                           selected: isSelected,
                           selectedColor: t.accent,
                           backgroundColor: t.surface,
@@ -824,7 +824,7 @@ class IconSettingsPage extends ConsumerWidget {
                             child: Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 4.0),
                               child: ChoiceChip(
-                                label: Text(styleOpt.toUpperCase(), style: TextStyle(color: isSelected ? Colors.white : t.primaryText)),
+                                label: Text(styleOpt.toUpperCase(), style: t.type.caption.copyWith(color: isSelected ? t.background : t.primaryText, fontWeight: FontWeight.bold)),
                                 selected: isSelected,
                                 selectedColor: t.accent,
                                 backgroundColor: t.surface,
@@ -1259,7 +1259,7 @@ class LayoutSettingsPage extends ConsumerWidget {
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 4.0),
                         child: ChoiceChip(
-                          label: Text(density.toUpperCase(), style: TextStyle(color: isSelected ? Colors.white : t.primaryText)),
+                          label: Text(density.toUpperCase(), style: t.type.caption.copyWith(color: isSelected ? t.background : t.primaryText, fontWeight: FontWeight.bold)),
                           selected: isSelected,
                           selectedColor: t.accent,
                           backgroundColor: t.surface,
@@ -1283,7 +1283,7 @@ class LayoutSettingsPage extends ConsumerWidget {
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 4.0),
                         child: ChoiceChip(
-                          label: Text(align.toUpperCase(), style: TextStyle(color: isSelected ? Colors.white : t.primaryText)),
+                          label: Text(align.toUpperCase(), style: t.type.caption.copyWith(color: isSelected ? t.background : t.primaryText, fontWeight: FontWeight.bold)),
                           selected: isSelected,
                           selectedColor: t.accent,
                           backgroundColor: t.surface,
@@ -1347,7 +1347,7 @@ class LayoutSettingsPage extends ConsumerWidget {
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 4.0),
                         child: ChoiceChip(
-                          label: Text(pos.toUpperCase(), style: TextStyle(color: isSelected ? Colors.white : t.primaryText)),
+                          label: Text(pos.toUpperCase(), style: t.type.caption.copyWith(color: isSelected ? t.background : t.primaryText, fontWeight: FontWeight.bold)),
                           selected: isSelected,
                           selectedColor: t.accent,
                           backgroundColor: t.surface,
@@ -1490,7 +1490,7 @@ class ClockSettingsPage extends ConsumerWidget {
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 4.0),
                         child: ChoiceChip(
-                          label: Text(align.toUpperCase(), style: TextStyle(color: isSelected ? Colors.white : t.primaryText)),
+                          label: Text(align.toUpperCase(), style: t.type.caption.copyWith(color: isSelected ? t.background : t.primaryText, fontWeight: FontWeight.bold)),
                           selected: isSelected,
                           selectedColor: t.accent,
                           backgroundColor: t.surface,
@@ -1646,7 +1646,7 @@ class MotionSettingsPage extends ConsumerWidget {
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 4.0),
                         child: ChoiceChip(
-                          label: Text(mode.toUpperCase(), style: TextStyle(color: isSelected ? Colors.white : t.primaryText)),
+                          label: Text(mode.toUpperCase(), style: t.type.caption.copyWith(color: isSelected ? t.background : t.primaryText, fontWeight: FontWeight.bold)),
                           selected: isSelected,
                           selectedColor: t.accent,
                           backgroundColor: t.surface,

@@ -11,12 +11,14 @@ import '../../../settings/presentation/pages/settings_screen.dart';
 import '../../../usage/presentation/providers/usage_provider.dart';
 import '../../../focus/presentation/providers/focus_provider.dart';
 import '../../../focus/domain/services/app_launcher.dart';
+import '../../../focus/presentation/pages/focus_settings_screen.dart';
 import '../../domain/services/suggestion_service.dart';
 import '../../domain/models/home_widget_config.dart';
 import '../providers/launcher_state.dart';
 import '../widgets/home_widgets.dart';
 import 'app_drawer.dart';
 import 'search_overlay.dart';
+import 'add_apps_screen.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -69,6 +71,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ),
       );
 
+  void _openAddApps() => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const AddAppsScreen()),
+      );
+
   Future<void> _lockScreen() async {
     try {
       await const MethodChannel('com.example.nudge/launcher')
@@ -100,10 +107,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final doubleTap = settings.gestureDoubleTap;
     final longPress = settings.gestureLongPress;
 
-    // Favorites (sorted by position)
-    final rawFavorites = state.allApps.where((a) => a.isFavorite && !a.isHidden).toList()
+    // Home Apps selected explicitly by user (isFavorite == true)
+    final selectedHomeApps = state.allApps
+        .where((a) => a.isFavorite && !a.isHidden)
+        .toList()
       ..sort((a, b) => a.position.compareTo(b.position));
-    final favorites = rawFavorites.take(t.layoutSettings.visibleAppCount).toList();
 
     // Smart suggestions
     final suggestions = settings.showSmartSuggestions
@@ -148,82 +156,144 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               horizontal: t.layoutSettings.horizontalPadding,
               vertical: NudgeSpacing.pageVertical,
             ),
-            child: AnimatedContainer(
-              duration: t.motion.normal,
-              curve: t.motion.curve,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const SizedBox(height: NudgeSpacing.xl),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: NudgeSpacing.xl),
 
-                  // ── Widget strip (top position) ──────────────────────────
-                  if (t.layoutSettings.clockPosition == 'top') ...[
-                    HomeWidgetStrip(
-                      widgets: widgetConfigs,
-                      spacing: settings.widgetSpacing,
-                      alignment: settings.widgetAlignment,
-                    ),
-                    SizedBox(height: t.layoutSettings.verticalSpacing),
-                  ],
-
-                  // ── Smart suggestions ────────────────────────────────────
-                  if (suggestions.isNotEmpty) ...[
-                    _SuggestionsStrip(
-                      suggestions: suggestions,
-                      icons: state.appIcons,
-                      theme: t,
-                    ),
-                    const SizedBox(height: NudgeSpacing.sm),
-                  ],
-
-                  // ── Favorites list ───────────────────────────────────────
-                  Expanded(
-                    child: favorites.isEmpty
-                        ? Center(
-                            child: Text(
-                              'Swipe up for drawer · Long-press for settings',
-                              style: t.type.body.copyWith(color: t.mutedText),
-                              textAlign: TextAlign.center,
-                            ),
-                          )
-                        : Theme(
-                            data: Theme.of(context).copyWith(
-                                canvasColor: Colors.transparent),
-                            child: ReorderableListView.builder(
-                              physics: const BouncingScrollPhysics(),
-                              itemCount: favorites.length,
-                              // ignore: deprecated_member_use
-                              onReorder: notifier.reorderFavorites,
-                              itemBuilder: (context, index) {
-                                final app = favorites[index];
-                                final iconBytes = state.appIcons[app.packageName];
-                                final formattedName = t.type.applyCase(app.appName);
-                                return _FavoriteAppTile(
-                                  key: ValueKey(app.packageName),
-                                  app: app,
-                                  formattedName: formattedName,
-                                  iconBytes: iconBytes,
-                                  theme: t,
-                                  notifier: notifier,
-                                );
-                              },
-                            ),
-                          ),
+                // ── Top Widget Strip ──────────────────────────────────────
+                if (t.layoutSettings.clockPosition == 'top') ...[
+                  HomeWidgetStrip(
+                    widgets: widgetConfigs,
+                    spacing: settings.widgetSpacing,
+                    alignment: settings.widgetAlignment,
                   ),
-
-                  // ── Widget strip (bottom position) ───────────────────────
-                  if (t.layoutSettings.clockPosition == 'bottom') ...[
-                    SizedBox(height: t.layoutSettings.verticalSpacing),
-                    HomeWidgetStrip(
-                      widgets: widgetConfigs,
-                      spacing: settings.widgetSpacing,
-                      alignment: settings.widgetAlignment,
-                    ),
-                  ],
+                  SizedBox(height: t.layoutSettings.verticalSpacing),
                 ],
-              ),
+
+                // ── Smart Suggestions Strip ───────────────────────────────
+                if (suggestions.isNotEmpty && selectedHomeApps.isNotEmpty) ...[
+                  _SuggestionsStrip(
+                    suggestions: suggestions,
+                    icons: state.appIcons,
+                    theme: t,
+                  ),
+                  const SizedBox(height: NudgeSpacing.sm),
+                ],
+
+                // ── Home App List or Empty State ──────────────────────────
+                Expanded(
+                  child: selectedHomeApps.isEmpty
+                      ? _buildEmptyHomeState(context, t)
+                      : Column(
+                          children: [
+                            Expanded(
+                              child: Theme(
+                                data: Theme.of(context).copyWith(
+                                    canvasColor: Colors.transparent),
+                                child: ReorderableListView.builder(
+                                  physics: const BouncingScrollPhysics(),
+                                  itemCount: selectedHomeApps.length,
+                                  // ignore: deprecated_member_use
+                                  onReorder: notifier.reorderFavorites,
+                                  itemBuilder: (context, index) {
+                                    final app = selectedHomeApps[index];
+                                    final iconBytes = state.appIcons[app.packageName];
+                                    final formattedName = t.type.applyCase(app.appName);
+                                    return _HomeAppTile(
+                                      key: ValueKey(app.packageName),
+                                      app: app,
+                                      formattedName: formattedName,
+                                      iconBytes: iconBytes,
+                                      theme: t,
+                                      notifier: notifier,
+                                    );
+                                  },
+                                ),
+                              ),
+                            ),
+
+                            // "+ Add Apps" Button at bottom of selected app list
+                            Padding(
+                              padding: const EdgeInsets.only(top: NudgeSpacing.md),
+                              child: Center(
+                                child: TextButton.icon(
+                                  icon: Icon(Icons.add, color: t.accent, size: 20),
+                                  label: Text(
+                                    'Add Apps',
+                                    style: t.type.body.copyWith(
+                                      color: t.accent,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  onPressed: _openAddApps,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                ),
+
+                // ── Bottom Widget Strip ───────────────────────────────────
+                if (t.layoutSettings.clockPosition == 'bottom') ...[
+                  SizedBox(height: t.layoutSettings.verticalSpacing),
+                  HomeWidgetStrip(
+                    widgets: widgetConfigs,
+                    spacing: settings.widgetSpacing,
+                    alignment: settings.widgetAlignment,
+                  ),
+                ],
+              ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  // ── Empty Home State ────────────────────────────────────────────────────────
+
+  Widget _buildEmptyHomeState(BuildContext context, NudgeThemeData t) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: NudgeSpacing.xl),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Nudge',
+              style: t.type.display.copyWith(
+                color: t.primaryText,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 2.0,
+              ),
+            ),
+            const SizedBox(height: NudgeSpacing.md),
+            Text(
+              'Keep only what matters.',
+              style: t.type.title.copyWith(color: t.accent),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: NudgeSpacing.xs),
+            Text(
+              'Choose the apps you actually want on your home screen.',
+              style: t.type.body.copyWith(color: t.mutedText),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: NudgeSpacing.xl),
+            ElevatedButton.icon(
+              icon: const Icon(Icons.add),
+              label: const Text('Add Apps'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: t.accent,
+                foregroundColor: t.background,
+                padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
+                textStyle: t.type.body.copyWith(fontWeight: FontWeight.bold),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              onPressed: _openAddApps,
+            ),
+          ],
         ),
       ),
     );
@@ -331,10 +401,10 @@ class _SuggestionChip extends ConsumerWidget {
   }
 }
 
-// ─── Favorite app tile ────────────────────────────────────────────────────────
+// ─── Selected Home App Tile ───────────────────────────────────────────────────
 
-class _FavoriteAppTile extends ConsumerWidget {
-  const _FavoriteAppTile({
+class _HomeAppTile extends ConsumerWidget {
+  const _HomeAppTile({
     super.key,
     required this.app,
     required this.formattedName,
@@ -355,7 +425,7 @@ class _FavoriteAppTile extends ConsumerWidget {
 
     return Semantics(
       label: 'Launch $formattedName',
-      hint: 'Double tap to open favorite app. Long press to remove.',
+      hint: 'Double tap to open app. Long press to remove from Home Screen.',
       button: true,
       enabled: true,
       child: Material(
@@ -443,19 +513,36 @@ class _FavoriteAppTile extends ConsumerWidget {
           children: [
             Padding(
               padding: const EdgeInsets.all(NudgeSpacing.lg),
-              child: Text(app.appName,
-                  style: t.type.title.copyWith(color: t.primaryText),
-                  textAlign: TextAlign.center),
+              child: Text(
+                app.appName,
+                style: t.type.title.copyWith(color: t.primaryText),
+                textAlign: TextAlign.center,
+              ),
             ),
             Divider(height: 1, color: t.divider),
             ListTile(
               leading: Icon(t.icons.resolve(NudgeIconToken.delete),
+                  color: t.semanticColors.error),
+              title: Text('Remove from Home',
+                  style: t.type.body.copyWith(color: t.semanticColors.error)),
+              subtitle: Text('Keeps app installed on phone',
+                  style: t.type.caption.copyWith(color: t.mutedText)),
+              onTap: () {
+                notifier.removeHomeApp(app.packageName);
+                Navigator.pop(ctx);
+              },
+            ),
+            ListTile(
+              leading: Icon(t.icons.resolve(NudgeIconToken.focus),
                   color: t.primaryText),
-              title: Text('Remove from Favorites',
+              title: Text('Set Delay & Block Rules',
                   style: t.type.body.copyWith(color: t.primaryText)),
               onTap: () {
-                notifier.toggleFavorite(app.packageName);
                 Navigator.pop(ctx);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const FocusSettingsPage()),
+                );
               },
             ),
             const SizedBox(height: NudgeSpacing.md),
